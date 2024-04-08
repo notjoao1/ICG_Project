@@ -11,6 +11,10 @@ const CLOCK = new THREE.Clock(); // keeps track of time since last frame
 const PLAYER_WIDTH = 0.1;
 const PLAYER_HEIGHT = 1;
 const PLAYER_DEPTH = 0.1;
+// room dimensions
+const ROOM_WIDTH = 100;
+const ROOM_HEIGHT = 40;
+const ROOM_DEPTH = 150;
 
 // three.js variables
 let camera, scene, renderer, stats;
@@ -24,8 +28,8 @@ const timeStep = 1 / 60;
 let playerShape;
 let playerBody;
 let physicsMaterial;
-const rockets = [];
-const rocketMeshes = [];
+const rocketBodyMap = new Map();
+const rocketMeshesMap = new Map();
 const boxes = [];
 const boxMeshes = [];
 
@@ -72,8 +76,8 @@ function initThree() {
   scene.add(ambientLight);
 
   const spotlight = new THREE.SpotLight(0xffffff, 0.9, 0, Math.PI / 4, 1);
-  spotlight.intensity = 1000;
-  spotlight.position.set(10, 30, 20);
+  spotlight.intensity = 10000;
+  spotlight.position.set(10, ROOM_HEIGHT / 2, 20);
   spotlight.target.position.set(0, 0, 0);
 
   spotlight.castShadow = true;
@@ -92,11 +96,42 @@ function initThree() {
   material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
 
   // Floor
-  const floorGeometry = new THREE.PlaneGeometry(300, 300, 100, 100);
+  const floorGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
   floorGeometry.rotateX(-Math.PI / 2);
   const floor = new THREE.Mesh(floorGeometry, material);
   floor.receiveShadow = true;
   scene.add(floor);
+
+  // Right wall
+  const rightWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
+  rightWallGeometry.rotateY(-Math.PI / 2);
+  const rightWall = new THREE.Mesh(rightWallGeometry, material);
+  rightWall.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+  rightWall.receiveShadow = true;
+  scene.add(rightWall);
+
+  // Left wall
+  const leftWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
+  leftWallGeometry.rotateY(Math.PI / 2);
+  const leftWall = new THREE.Mesh(leftWallGeometry, material);
+  leftWall.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+  leftWall.receiveShadow = true;
+  scene.add(leftWall);
+
+  // Front wall
+  const frontWallGeomtry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
+  const frontWall = new THREE.Mesh(frontWallGeomtry, material);
+  frontWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
+  frontWall.receiveShadow = true;
+  scene.add(frontWall);
+
+  // Back wall
+  const backWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
+  const backWall = new THREE.Mesh(backWallGeometry, material);
+  backWall.position.set(0, ROOM_HEIGHT / 2, ROOM_DEPTH / 2);
+  backWall.rotation.y = Math.PI;
+  backWall.receiveShadow = true;
+  scene.add(backWall);
 
   window.addEventListener("resize", onWindowResize);
 }
@@ -158,6 +193,43 @@ function initCannon() {
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
 
+  // Right wall physics
+  const rightWallShape = new CANNON.Plane();
+  const rightWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
+  rightWallBody.addShape(rightWallShape);
+  rightWallBody.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+  rightWallBody.quaternion.setFromAxisAngle(
+    new CANNON.Vec3(0, 1, 0),
+    -Math.PI / 2
+  );
+  world.addBody(rightWallBody);
+
+  // Left wall physics
+  const leftWallShape = new CANNON.Plane();
+  const leftWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
+  leftWallBody.addShape(leftWallShape);
+  leftWallBody.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+  leftWallBody.quaternion.setFromAxisAngle(
+    new CANNON.Vec3(0, 1, 0),
+    Math.PI / 2
+  );
+  world.addBody(leftWallBody);
+
+  // Front wall physics
+  const frontWallShape = new CANNON.Plane();
+  const frontWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
+  frontWallBody.addShape(frontWallShape);
+  frontWallBody.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
+  world.addBody(frontWallBody);
+
+  // Back wall physics
+  const backWallShape = new CANNON.Plane();
+  const backWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
+  backWallBody.addShape(backWallShape);
+  backWallBody.position.set(0, ROOM_HEIGHT / 2, ROOM_DEPTH / 2);
+  backWallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
+  world.addBody(backWallBody);
+
   // The shooting balls
   const shootVelocity = 15;
   const ballShape = new CANNON.Sphere(0.2);
@@ -188,9 +260,17 @@ function initCannon() {
     });
     rocketBody.addShape(ballShape);
 
-    rocketBody.addEventListener("collide", (event) => {
-      console.log("event body", typeof event.contact.bi);
-    });
+    // Handles Rocket collisions with other objects:
+    //  - disappears
+    //  - applies force to player
+    const collisionHandler = (event) => {
+      console.log("event", event.contact.bi);
+      event.contact.bi.removeEventListener("collide", collisionHandler);
+      world.removeBody(event.contact.bi);
+      //console.log(world);
+    };
+
+    rocketBody.addEventListener("collide", collisionHandler);
 
     // rocket in THREE world
     const rocketMesh = new THREE.Mesh(ballGeometry, material);
@@ -200,8 +280,8 @@ function initCannon() {
 
     world.addBody(rocketBody);
     scene.add(rocketMesh);
-    rockets.push(rocketBody);
-    rocketMeshes.push(rocketMesh);
+    rocketBodyMap.set(rocketBody.id, rocketBody);
+    rocketMeshesMap.set(rocketMesh.id, rocketMesh);
 
     const shootDirection = getShootDirection();
     rocketBody.velocity.set(
@@ -271,10 +351,14 @@ function animate() {
     world.step(timeStep, dt);
 
     // Update ball positions
-    for (let i = 0; i < rockets.length; i++) {
-      rockets[i].applyForce(new CANNON.Vec3(0, 7.28, 0)); // revert gravity (magically)
-      rocketMeshes[i].position.copy(rockets[i].position);
-      rocketMeshes[i].quaternion.copy(rockets[i].quaternion);
+    for (const rocketId of rocketBodyMap.keys()) {
+      rocketBodyMap.get(rocketId).applyForce(new CANNON.Vec3(0, 7.28, 0)); // revert gravity (magically)
+      rocketMeshesMap
+        .get(rocketId)
+        .position.copy(rocketBodyMap.get(rocketId).position);
+      rocketMeshesMap
+        .get(rocketId)
+        .quaternion.copy(rocketBodyMap.get(rocketId).quaternion);
     }
 
     /* // Update box positions
