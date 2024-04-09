@@ -283,12 +283,27 @@ function initCannon() {
       const directionalVectorForForce =
         getDirectionalVectorFromCollisionToPlayer(event);
 
-      // directional unit vector between player and collision point
-      const impulse = new CANNON.Vec3(
-        directionalVectorForForce.x * ROCKET_STRENGTH_MULT,
-        directionalVectorForForce.y * ROCKET_STRENGTH_MULT,
-        directionalVectorForForce.z * ROCKET_STRENGTH_MULT
+      const distanceFromCollision = directionalVectorForForce.length();
+
+      const unitDirectionalVec = directionalVectorForForce.unit();
+      console.log("distance from explosion", distanceFromCollision);
+      console.log(
+        "unitdirectionalVec",
+        unitDirectionalVec,
+        unitDirectionalVec.length()
       );
+
+      // directional unit vector between player and collision point
+      const knockback_strength =
+        ROCKET_STRENGTH_MULT - distanceFromCollision * 200;
+      const impulse = new CANNON.Vec3(
+        unitDirectionalVec.x *
+          (knockback_strength < 0 ? 0 : knockback_strength),
+        unitDirectionalVec.y *
+          (knockback_strength < 0 ? 0 : knockback_strength),
+        unitDirectionalVec.z * (knockback_strength < 0 ? 0 : knockback_strength)
+      );
+      console.log("IMPULSE", impulse);
       // applies impulse in playerBody center
       playerBody.applyImpulse(impulse, new CANNON.Vec3(0, 0, 0));
     };
@@ -302,7 +317,7 @@ function initCannon() {
         collisionEvent.contact.ri
       );
 
-      return playerPos.vsub(collisionPoint).unit();
+      return playerPos.vsub(collisionPoint);
     };
 
     // returns vector from world center to the collision point
