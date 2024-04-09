@@ -19,6 +19,7 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 
     this.pitchObject = new THREE.Object3D();
     this.pitchObject.add(camera);
+    this.angleY = 0; // to set quaternion of physics body while moving mouse (rotate Y)
 
     this.yawObject = new THREE.Object3D();
     this.yawObject.position.y = 2;
@@ -121,7 +122,11 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
     this.yawObject.rotation.y -= movementX * 0.002;
     this.pitchObject.rotation.x -= movementY * 0.002;
 
-    this.cannonBody.quaternion.y -= movementY * 0.002;
+    this.angleY -= movementX * 0.002;
+    this.cannonBody.quaternion.setFromAxisAngle(
+      new CANNON.Vec3(0, 1, 0),
+      this.angleY
+    );
 
     this.pitchObject.rotation.x = Math.max(
       -Math.PI / 2,
