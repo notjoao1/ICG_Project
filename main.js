@@ -28,10 +28,11 @@ const timeStep = 1 / 60;
 let playerShape;
 let playerBody;
 let physicsMaterial;
-const rocketBodyMap = new Map();
+const rocketBodyMap = new Map(); // ID -> {mesh_id, rocketBody} (associates rocket_body with mesh and keeps body)
 const rocketMeshesMap = new Map();
 const boxes = [];
 const boxMeshes = [];
+var rocketToRemoveId; // only remove rockets at every frame during render
 
 // game variables
 let lastRocketTime = 0;
@@ -264,9 +265,9 @@ function initCannon() {
     //  - disappears
     //  - applies force to player
     const collisionHandler = (event) => {
-      console.log("event", event.contact.bi);
       event.contact.bi.removeEventListener("collide", collisionHandler);
-      world.removeBody(event.contact.bi);
+      rocketToRemoveId = event.contact.bi.id;
+      //world.removeBody(event.contact.bi);
       //console.log(world);
     };
 
@@ -280,7 +281,10 @@ function initCannon() {
 
     world.addBody(rocketBody);
     scene.add(rocketMesh);
-    rocketBodyMap.set(rocketBody.id, rocketBody);
+    rocketBodyMap.set(rocketBody.id, {
+      mesh_id: rocketMesh.id,
+      body: rocketBody,
+    });
     rocketMeshesMap.set(rocketMesh.id, rocketMesh);
 
     const shootDirection = getShootDirection();
@@ -350,15 +354,30 @@ function animate() {
   if (controls.enabled) {
     world.step(timeStep, dt);
 
+    if (rocketToRemoveId) {
+      console.log("removing that rat");
+      const body = rocketBodyMap.get(rocketToRemoveId).body;
+      const meshId = rocketBodyMap.get(rocketToRemoveId).mesh_id;
+      const mesh = rocketMeshesMap.get(meshId);
+      world.removeBody(body);
+      scene.remove(mesh);
+      rocketBodyMap.delete(rocketToRemoveId);
+      rocketMeshesMap.delete(meshId);
+      rocketToRemoveId = null;
+    }
+
     // Update ball positions
-    for (const rocketId of rocketBodyMap.keys()) {
-      rocketBodyMap.get(rocketId).applyForce(new CANNON.Vec3(0, 7.28, 0)); // revert gravity (magically)
+    for (const bodyId of rocketBodyMap.keys()) {
+      const meshId = rocketBodyMap.get(bodyId).mesh_id;
+      rocketBodyMap.get(bodyId).body.applyForce(new CANNON.Vec3(0, 7.28, 0)); // revert gravity (magically)
+      //console.log("DEBUG MESH: ", rocketMeshesMap.get(meshId));
+      //console.log("DEBUG BODY: ", rocketBodyMap.get(bodyId));
       rocketMeshesMap
-        .get(rocketId)
-        .position.copy(rocketBodyMap.get(rocketId).position);
+        .get(meshId)
+        .position.copy(rocketBodyMap.get(bodyId).body.position);
       rocketMeshesMap
-        .get(rocketId)
-        .quaternion.copy(rocketBodyMap.get(rocketId).quaternion);
+        .get(meshId)
+        .quaternion.copy(rocketBodyMap.get(bodyId).body.quaternion);
     }
 
     /* // Update box positions
