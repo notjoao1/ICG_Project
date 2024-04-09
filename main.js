@@ -57,7 +57,7 @@ function initThree() {
 
   // Scene
   scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x000000, 0, 500);
+  scene.fog = new THREE.Fog(0xffffff, 0, 500);
 
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -191,7 +191,7 @@ function initCannon() {
   playerBody.addShape(playerShape);
   playerBody.position.set(0, 5, 0);
   playerBody.linearDamping = 0.9;
-  playerBody.angularFactor = new CANNON.Vec3(0, 1, 0); // lock rotation on X and Z (only rotate on Y axis)
+  playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
 
   // Create the ground plane
@@ -266,6 +266,7 @@ function initCannon() {
       type: CANNON.Body.DYNAMIC,
     });
     rocketBody.addShape(ballShape);
+    rocketBody.force.set(0, 100, 0);
     console.log("created rocketBody with ID ", rocketBody.id);
 
     // Handles Rocket collisions with other objects:
@@ -424,7 +425,7 @@ function animate() {
     // Update ball positions
     for (const bodyId of rocketBodyMap.keys()) {
       const meshId = rocketBodyMap.get(bodyId).mesh_id;
-      rocketBodyMap.get(bodyId).body.applyForce(new CANNON.Vec3(0, 7.28, 0)); // revert gravity (magically)
+      //rocketBodyMap.get(bodyId).body.applyForce(new CANNON.Vec3(0, 7.28, 0)); // revert gravity (magically)
       //console.log("DEBUG MESH: ", rocketMeshesMap.get(meshId));
       //console.log("DEBUG BODY: ", rocketBodyMap.get(bodyId));
       rocketMeshesMap
