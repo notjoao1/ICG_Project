@@ -15,6 +15,7 @@ const PLAYER_DEPTH = 0.1;
 const ROOM_WIDTH = 100;
 const ROOM_HEIGHT = 40;
 const ROOM_DEPTH = 150;
+const ROCKET_STRENGTH_MULT = 1000;
 
 // three.js variables
 let camera, scene, renderer, stats;
@@ -92,6 +93,12 @@ function initThree() {
   spotlight.shadow.mapSize.height = 2048;
 
   scene.add(spotlight);
+
+  // helper axis
+  const axisHelper = new THREE.AxesHelper(5);
+  axisHelper.position.set(0, 0.1, 0);
+
+  scene.add(axisHelper);
 
   // Generic material
   material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
@@ -254,21 +261,53 @@ function initCannon() {
     if (performance.now() - lastRocketTime < ROCKET_INTERVAL) return;
 
     // CREATE ROCKET IN PHYSICS WORLD + THREE.JS WORLD
-    // rocket in physics world (mass = 0 porque ele não é afetado por gravidade!!!)
     const rocketBody = new CANNON.Body({
       mass: 1,
       type: CANNON.Body.DYNAMIC,
     });
     rocketBody.addShape(ballShape);
+    console.log("created rocketBody with ID ", rocketBody.id);
 
     // Handles Rocket collisions with other objects:
     //  - disappears
     //  - applies force to player
     const collisionHandler = (event) => {
-      event.contact.bi.removeEventListener("collide", collisionHandler);
+      event.contact.bi.removeEventListener(
+        CANNON.Body.COLLIDE_EVENT_NAME,
+        collisionHandler
+      );
+      // schedule rocket for removal on new frame
       rocketToRemoveId = event.contact.bi.id;
-      //world.removeBody(event.contact.bi);
-      //console.log(world);
+
+      console.log("COLLIDE EVENT", event);
+      const directionalVectorForForce =
+        getDirectionalVectorFromCollisionToPlayer(event);
+
+      // directional unit vector between player and collision point
+      const impulse = new CANNON.Vec3(
+        directionalVectorForForce.x * ROCKET_STRENGTH_MULT,
+        directionalVectorForForce.y * ROCKET_STRENGTH_MULT,
+        directionalVectorForForce.z * ROCKET_STRENGTH_MULT
+      );
+      // applies impulse in playerBody center
+      playerBody.applyImpulse(impulse, new CANNON.Vec3(0, 0, 0));
+    };
+
+    // returns UNIT directional vector from collision point to player's position
+    // used to apply a knockback force when a rocket explodes
+    const getDirectionalVectorFromCollisionToPlayer = (collisionEvent) => {
+      const playerPos = playerBody.position;
+      const collisionPoint = getCollisionPoint(
+        collisionEvent.contact.bi.position,
+        collisionEvent.contact.ri
+      );
+
+      return playerPos.vsub(collisionPoint).unit();
+    };
+
+    // returns vector from world center to the collision point
+    const getCollisionPoint = (rocketPos, worldContactPoint) => {
+      return rocketPos.vadd(worldContactPoint);
     };
 
     rocketBody.addEventListener("collide", collisionHandler);
@@ -356,6 +395,7 @@ function animate() {
 
     if (rocketToRemoveId) {
       console.log("removing that rat");
+      console.log("rocket to remove ID", rocketToRemoveId);
       const body = rocketBodyMap.get(rocketToRemoveId).body;
       const meshId = rocketBodyMap.get(rocketToRemoveId).mesh_id;
       const mesh = rocketMeshesMap.get(meshId);
