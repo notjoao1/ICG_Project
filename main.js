@@ -52,17 +52,15 @@ function initThree() {
     75,
     window.innerWidth / window.innerHeight,
     0.1,
-    1000
+    10000
   );
 
   // Scene
   scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xffffff, 0, 500);
 
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(scene.fog.color);
 
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -99,6 +97,38 @@ function initThree() {
   axisHelper.position.set(0, 0.1, 0);
 
   scene.add(axisHelper);
+
+  // create skybox
+  const skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
+  const materialArray = [
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/front.jpg"),
+      side: THREE.DoubleSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/back.jpg"),
+      side: THREE.DoubleSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/up.jpg"),
+      side: THREE.DoubleSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/down.jpg"),
+      side: THREE.DoubleSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/right.jpg"),
+      side: THREE.DoubleSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/left.jpg"),
+      side: THREE.DoubleSide,
+    }),
+  ];
+
+  const skybox = new THREE.Mesh(skyboxGeo, materialArray);
+  scene.add(skybox);
 
   // Generic material
   material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
@@ -267,7 +297,6 @@ function initCannon() {
     });
     rocketBody.addShape(ballShape);
     rocketBody.force.set(0, 100, 0);
-    console.log("created rocketBody with ID ", rocketBody.id);
 
     // Handles Rocket collisions with other objects:
     //  - disappears
@@ -280,19 +309,12 @@ function initCannon() {
       // schedule rocket for removal on new frame
       rocketToRemoveId = event.contact.bi.id;
 
-      console.log("COLLIDE EVENT", event);
       const directionalVectorForForce =
         getDirectionalVectorFromCollisionToPlayer(event);
 
       const distanceFromCollision = directionalVectorForForce.length();
 
       const unitDirectionalVec = directionalVectorForForce.unit();
-      console.log("distance from explosion", distanceFromCollision);
-      console.log(
-        "unitdirectionalVec",
-        unitDirectionalVec,
-        unitDirectionalVec.length()
-      );
 
       // directional unit vector between player and collision point
       const knockback_strength =
@@ -410,8 +432,6 @@ function animate() {
     world.step(timeStep, dt);
 
     if (rocketToRemoveId) {
-      console.log("removing that rat");
-      console.log("rocket to remove ID", rocketToRemoveId);
       const body = rocketBodyMap.get(rocketToRemoveId).body;
       const meshId = rocketBodyMap.get(rocketToRemoveId).mesh_id;
       const mesh = rocketMeshesMap.get(meshId);
@@ -426,8 +446,6 @@ function animate() {
     for (const bodyId of rocketBodyMap.keys()) {
       const meshId = rocketBodyMap.get(bodyId).mesh_id;
       //rocketBodyMap.get(bodyId).body.applyForce(new CANNON.Vec3(0, 7.28, 0)); // revert gravity (magically)
-      //console.log("DEBUG MESH: ", rocketMeshesMap.get(meshId));
-      //console.log("DEBUG BODY: ", rocketBodyMap.get(bodyId));
       rocketMeshesMap
         .get(meshId)
         .position.copy(rocketBodyMap.get(bodyId).body.position);
