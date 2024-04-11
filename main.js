@@ -72,7 +72,7 @@ function initThree() {
   document.body.appendChild(stats.dom);
 
   // Lights
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
   const spotlight = new THREE.SpotLight(0xffffff, 0.9, 0, Math.PI / 4, 1);
@@ -131,12 +131,20 @@ function initThree() {
   scene.add(skybox);
 
   // Generic material
-  material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
+  material = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+  // generic texture
+  const texture = new THREE.TextureLoader().load("assets/dev_texture.png");
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(ROOM_WIDTH, ROOM_HEIGHT); // Repeat 4 times horizontally, 2 times vertically
+
+  const devMaterial = new THREE.MeshPhongMaterial({ map: texture });
 
   // Floor
   const floorGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
   floorGeometry.rotateX(-Math.PI / 2);
-  const floor = new THREE.Mesh(floorGeometry, material);
+  const floor = new THREE.Mesh(floorGeometry, devMaterial);
   floor.receiveShadow = true;
   scene.add(floor);
 
@@ -269,7 +277,7 @@ function initCannon() {
   world.addBody(backWallBody);
 
   // The shooting balls
-  const shootVelocity = 15;
+  const shootVelocity = 20;
   const ballShape = new CANNON.Sphere(0.2);
   const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
 
@@ -296,7 +304,6 @@ function initCannon() {
       type: CANNON.Body.DYNAMIC,
     });
     rocketBody.addShape(ballShape);
-    rocketBody.force.set(0, 100, 0);
 
     // Handles Rocket collisions with other objects:
     //  - disappears
@@ -370,12 +377,6 @@ function initCannon() {
       shootDirection.y * shootVelocity,
       shootDirection.z * shootVelocity
     );
-    console.log(
-      "rocket velocity: ",
-      shootDirection.x * shootVelocity,
-      shootDirection.y * shootVelocity,
-      shootDirection.z * shootVelocity
-    );
 
     // Move the rocket outside of the player box model
     const x =
@@ -429,7 +430,7 @@ function animate() {
   const dt = CLOCK.getDelta();
 
   if (controls.enabled) {
-    world.step(timeStep, dt);
+    world.step(dt, timeStep);
 
     if (rocketToRemoveId) {
       const body = rocketBodyMap.get(rocketToRemoveId).body;
@@ -445,7 +446,7 @@ function animate() {
     // Update ball positions
     for (const bodyId of rocketBodyMap.keys()) {
       const meshId = rocketBodyMap.get(bodyId).mesh_id;
-      //rocketBodyMap.get(bodyId).body.applyForce(new CANNON.Vec3(0, 7.28, 0)); // revert gravity (magically)
+      rocketBodyMap.get(bodyId).body.applyForce(new CANNON.Vec3(0, 20.014, 0));
       rocketMeshesMap
         .get(meshId)
         .position.copy(rocketBodyMap.get(bodyId).body.position);
