@@ -7,6 +7,7 @@ import { PointerLockControlsCannon } from "./PointerLockControllsCannon.js";
 
 // CONSTANTS
 const ROCKET_INTERVAL = 800; // 800ms interval between rockets shooting
+const ROCKET_VELOCITY = 28;
 const CLOCK = new THREE.Clock(); // keeps track of time since last frame
 const PLAYER_WIDTH = 0.1;
 const PLAYER_HEIGHT = 1;
@@ -135,13 +136,13 @@ function initThree() {
   // Generic material
   material = new THREE.MeshLambertMaterial({ color: 0xffffff });
 
-  // generic texture
+  // dev texture
   const texture = new THREE.TextureLoader().load("assets/dev_texture.png");
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(ROOM_WIDTH, ROOM_HEIGHT); // Repeat 4 times horizontally, 2 times vertically
 
-  const devMaterial = new THREE.MeshPhongMaterial({ map: texture });
+  const devMaterial = new THREE.MeshLambertMaterial({ map: texture });
 
   // Floor
   const floorGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
@@ -234,7 +235,7 @@ function initCannon() {
   });
   playerBody = new CANNON.Body({ mass: 50, material: playerMat });
   playerBody.addShape(playerShape);
-  playerBody.position.set(0, 40, 0);
+  playerBody.position.set(0, 80, 0);
   playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
@@ -284,7 +285,6 @@ function initCannon() {
   world.addBody(backWallBody);
 
   // The shooting balls
-  const shootVelocity = 20;
   const ballShape = new CANNON.Sphere(0.2);
   const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
 
@@ -323,6 +323,11 @@ function initCannon() {
         CANNON.Body.COLLIDE_EVENT_NAME,
         collisionHandler
       );
+
+      // ignore collisions with other rockets
+      for (const rocketBodyId of rocketBodyMap.keys()) {
+        if (event.contact.bj.id == rocketBodyId) return;
+      }
       // schedule rocket for removal on new frame
       rocketToRemoveId = event.contact.bi.id;
 
@@ -383,9 +388,9 @@ function initCannon() {
 
     const shootDirection = getShootDirection();
     rocketBody.velocity.set(
-      shootDirection.x * shootVelocity,
-      shootDirection.y * shootVelocity,
-      shootDirection.z * shootVelocity
+      shootDirection.x * ROCKET_VELOCITY,
+      shootDirection.y * ROCKET_VELOCITY,
+      shootDirection.z * ROCKET_VELOCITY
     );
 
     // Move the rocket outside of the player box model
