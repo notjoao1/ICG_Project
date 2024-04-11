@@ -32,8 +32,6 @@ let playerBody;
 let physicsMaterial;
 const rocketBodyMap = new Map(); // ID -> {mesh_id, rocketBody} (associates rocket_body with mesh and keeps body)
 const rocketMeshesMap = new Map();
-const boxes = [];
-const boxMeshes = [];
 var rocketToRemoveId; // only remove rockets at every frame during render
 
 // game variables
@@ -44,6 +42,7 @@ const menu = document.getElementById("menu");
 const crosshair = document.getElementById("crosshair");
 
 initThree();
+initLevel();
 initCannon();
 initCannonDebugger(); // comment out when not debugging physics
 initPointerLock();
@@ -75,10 +74,18 @@ function initThree() {
   document.body.appendChild(stats.dom);
 
   // Lights
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
   scene.add(ambientLight);
 
-  const spotlight = new THREE.SpotLight(0xffffff, 0.9, 0, Math.PI / 4, 1);
+  const hemisphereLight = new THREE.HemisphereLight(
+    new THREE.Color(0xffffff),
+    new THREE.Color(0x000000),
+    1
+  );
+
+  scene.add(hemisphereLight);
+
+  /* const spotlight = new THREE.SpotLight(0xffffff, 0.9, 0, Math.PI / 4, 1);
   spotlight.intensity = 10000;
   spotlight.position.set(10, ROOM_HEIGHT / 2, 20);
   spotlight.target.position.set(0, 0, 0);
@@ -93,7 +100,7 @@ function initThree() {
   spotlight.shadow.mapSize.width = 2048;
   spotlight.shadow.mapSize.height = 2048;
 
-  scene.add(spotlight);
+  scene.add(spotlight); */
 
   // helper axis
   const axisHelper = new THREE.AxesHelper(5);
@@ -134,7 +141,7 @@ function initThree() {
   scene.add(skybox);
 
   // Generic material
-  material = new THREE.MeshLambertMaterial({ color: 0xffffff });
+  material = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 1000 });
 
   // dev texture
   const texture = new THREE.TextureLoader().load("assets/dev_texture.png");
@@ -142,7 +149,18 @@ function initThree() {
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(ROOM_WIDTH, ROOM_HEIGHT); // Repeat 4 times horizontally, 2 times vertically
 
-  const devMaterial = new THREE.MeshLambertMaterial({ map: texture });
+  const textureGray = new THREE.TextureLoader().load(
+    "assets/dev_texture.gray.jpg"
+  );
+  textureGray.wrapS = THREE.RepeatWrapping;
+  textureGray.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(ROOM_WIDTH, ROOM_HEIGHT);
+
+  const devMaterial = new THREE.MeshPhongMaterial({
+    map: texture,
+    color: 0xffffff,
+    shininess: 6000,
+  });
 
   // Floor
   const floorGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
@@ -154,7 +172,7 @@ function initThree() {
   // Right wall
   const rightWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
   rightWallGeometry.rotateY(-Math.PI / 2);
-  const rightWall = new THREE.Mesh(rightWallGeometry, material);
+  const rightWall = new THREE.Mesh(rightWallGeometry, devMaterial);
   rightWall.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
   rightWall.receiveShadow = true;
   scene.add(rightWall);
@@ -162,21 +180,21 @@ function initThree() {
   // Left wall
   const leftWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
   leftWallGeometry.rotateY(Math.PI / 2);
-  const leftWall = new THREE.Mesh(leftWallGeometry, material);
+  const leftWall = new THREE.Mesh(leftWallGeometry, devMaterial);
   leftWall.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
   leftWall.receiveShadow = true;
   scene.add(leftWall);
 
   // Front wall
   const frontWallGeomtry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
-  const frontWall = new THREE.Mesh(frontWallGeomtry, material);
+  const frontWall = new THREE.Mesh(frontWallGeomtry, devMaterial);
   frontWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
   frontWall.receiveShadow = true;
   scene.add(frontWall);
 
   // Back wall
   const backWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
-  const backWall = new THREE.Mesh(backWallGeometry, material);
+  const backWall = new THREE.Mesh(backWallGeometry, devMaterial);
   backWall.position.set(0, ROOM_HEIGHT / 2, ROOM_DEPTH / 2);
   backWall.rotation.y = Math.PI;
   backWall.receiveShadow = true;
@@ -184,6 +202,8 @@ function initThree() {
 
   window.addEventListener("resize", onWindowResize);
 }
+
+function initLevel() {}
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -322,7 +342,6 @@ function initCannon() {
       // ignore collisions with other rockets
       for (const rocketBodyId of rocketBodyMap.keys()) {
         if (event.contact.bj.id == rocketBodyId) {
-          console.log("Bomboclat");
           return;
         }
       }
@@ -331,7 +350,6 @@ function initCannon() {
         collisionHandler
       );
 
-      console.log("something collided with something");
       // schedule rocket for removal on new frame
       rocketToRemoveId = event.contact.bi.id;
 
