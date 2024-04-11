@@ -319,15 +319,19 @@ function initCannon() {
     const collisionHandler = (event) => {
       // don't do anything if collided with player
       if (event.contact.bj == playerBody) return;
+      // ignore collisions with other rockets
+      for (const rocketBodyId of rocketBodyMap.keys()) {
+        if (event.contact.bj.id == rocketBodyId) {
+          console.log("Bomboclat");
+          return;
+        }
+      }
       event.contact.bi.removeEventListener(
         CANNON.Body.COLLIDE_EVENT_NAME,
         collisionHandler
       );
 
-      // ignore collisions with other rockets
-      for (const rocketBodyId of rocketBodyMap.keys()) {
-        if (event.contact.bj.id == rocketBodyId) return;
-      }
+      console.log("something collided with something");
       // schedule rocket for removal on new frame
       rocketToRemoveId = event.contact.bi.id;
 
