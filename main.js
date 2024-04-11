@@ -38,7 +38,9 @@ var rocketToRemoveId; // only remove rockets at every frame during render
 // game variables
 let lastRocketTime = 0;
 
+// HTML elements
 const menu = document.getElementById("menu");
+const crosshair = document.getElementById("crosshair");
 
 initThree();
 initCannon();
@@ -213,7 +215,7 @@ function initCannon() {
     physicsMaterial,
     physicsMaterial,
     {
-      friction: 0.0,
+      friction: 0,
       restitution: 0.3,
     }
   );
@@ -225,10 +227,15 @@ function initCannon() {
   playerShape = new CANNON.Box(
     new CANNON.Vec3(PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_DEPTH)
   );
-  playerBody = new CANNON.Body({ mass: 50, material: physicsMaterial });
+  // less bouncy material for player
+  const playerMat = new CANNON.Material({
+    friction: 0,
+    restitution: 100,
+  });
+  playerBody = new CANNON.Body({ mass: 50, material: playerMat });
   playerBody.addShape(playerShape);
-  playerBody.position.set(0, 5, 0);
-  playerBody.linearDamping = 0.9;
+  playerBody.position.set(0, 40, 0);
+  playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
 
@@ -303,12 +310,15 @@ function initCannon() {
       mass: 1,
       type: CANNON.Body.DYNAMIC,
     });
+    rocketBody.collisionResponse = 0;
     rocketBody.addShape(ballShape);
 
     // Handles Rocket collisions with other objects:
     //  - disappears
     //  - applies force to player
     const collisionHandler = (event) => {
+      // don't do anything if collided with player
+      if (event.contact.bj == playerBody) return;
       event.contact.bi.removeEventListener(
         CANNON.Body.COLLIDE_EVENT_NAME,
         collisionHandler
@@ -406,6 +416,12 @@ function initCannonDebugger() {
 // This function initializes the PointerLockControls wrapper by Cannon
 // if you click "ESC" you open the menu. while on the menu, if you click the screen, you resume the game
 function initPointerLock() {
+  /* // DEBUG: TESTING GRAVITY, REMOVE LATER!!!!
+  const debugBody = new CANNON.Body({ mass: 10, material: physicsMaterial });
+  debugBody.addShape(new CANNON.Box(new CANNON.Vec3(1, 1, 1)));
+  world.addBody(debugBody);
+  debugBody.position.set(0, 100, 0); */
+
   controls = new PointerLockControlsCannon(camera, playerBody);
   scene.add(controls.getObject());
 
@@ -416,10 +432,12 @@ function initPointerLock() {
   controls.addEventListener("lock", () => {
     controls.enabled = true;
     menu.style.display = "none";
+    crosshair.style.display = "block";
   });
 
   controls.addEventListener("unlock", () => {
     controls.enabled = false;
+    crosshair.style.display = "none";
     menu.style.display = null;
   });
 }
