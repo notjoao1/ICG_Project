@@ -4,8 +4,11 @@ import CannonDebugger from "cannon-es-debugger";
 
 import Stats from "https://unpkg.com/three@0.122.0/examples/jsm/libs/stats.module.js";
 import { PointerLockControlsCannon } from "./PointerLockControllsCannon.js";
+import { DRACOLoader, GLTFLoader } from "three/examples/jsm/Addons.js";
+
 
 // CONSTANTS
+const TICK_RATE = 64;
 const ROCKET_INTERVAL = 800; // 800ms interval between rockets shooting
 const ROCKET_VELOCITY = 28;
 const CLOCK = new THREE.Clock(); // keeps track of time since last frame
@@ -29,6 +32,7 @@ let controls;
 const timeStep = 1 / 60;
 let playerShape;
 let playerBody;
+let playerMesh;
 let physicsMaterial;
 const rocketBodyMap = new Map(); // ID -> {mesh_id, rocketBody} (associates rocket_body with mesh and keeps body)
 const rocketMeshesMap = new Map();
@@ -200,6 +204,35 @@ function initThree() {
   backWall.receiveShadow = true;
   scene.add(backWall);
 
+  // PLAYER
+  playerMesh = new THREE.Object3D();
+  scene.add(playerMesh);
+  const loader = new GLTFLoader();
+
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
+  loader.setDRACOLoader( dracoLoader );
+
+  // Load a glTF resource
+  loader.load(
+    // resource URL
+    'assets/models/rocket_launcher/scene.gltf',
+    // called when the resource is loaded
+    function ( gltf ) {
+
+      gltf.scene.scale.set(0.1, 0.1, 0.1);
+      gltf.scene.position.add(new THREE.Vector3(0, 0.5, 0));
+      playerMesh.add(gltf.scene);
+
+      gltf.animations; // Array<THREE.AnimationClip>
+      gltf.scene; // THREE.Group
+      gltf.scenes; // Array<THREE.Group>
+      gltf.cameras; // Array<THREE.Camera>
+      gltf.asset; // Object
+
+    },
+  );
+
   window.addEventListener("resize", onWindowResize);
 }
 
@@ -228,7 +261,7 @@ function initCannon() {
   // use this to test non-split solver
   // world.solver = solver
 
-  world.gravity.set(0, -20, 0);
+  world.gravity.set(0, -9.8, 0);
 
   // Create a slippery material (friction coefficient = 0.0)
   physicsMaterial = new CANNON.Material("physics");
@@ -237,7 +270,7 @@ function initCannon() {
     physicsMaterial,
     {
       friction: 0,
-      restitution: 0.3,
+      restitution: 1,
     }
   );
 
@@ -475,7 +508,7 @@ function animate() {
   const dt = CLOCK.getDelta();
 
   if (controls.enabled) {
-    world.step(dt, timeStep);
+    world.step(timeStep, dt);
 
     if (rocketToRemoveId) {
       const body = rocketBodyMap.get(rocketToRemoveId).body;
@@ -487,11 +520,14 @@ function animate() {
       rocketMeshesMap.delete(meshId);
       rocketToRemoveId = null;
     }
+    // Update player's model position
+    playerMesh.position.copy(playerBody.position);
+    playerMesh.quaternion.copy(playerBody.quaternion);
 
     // Update ball positions
     for (const bodyId of rocketBodyMap.keys()) {
       const meshId = rocketBodyMap.get(bodyId).mesh_id;
-      rocketBodyMap.get(bodyId).body.applyForce(new CANNON.Vec3(0, 20.014, 0));
+      rocketBodyMap.get(bodyId).body.force.set(0, 9.8, 0);
       rocketMeshesMap
         .get(meshId)
         .position.copy(rocketBodyMap.get(bodyId).body.position);
