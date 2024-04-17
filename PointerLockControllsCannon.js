@@ -13,9 +13,8 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 
     this.cannonBody = cannonBody;
 
-    // var eyeYPos = 2 // eyes are 2 meters above the ground
     this.velocityFactor = 0.2;
-    this.jumpVelocity = 25000;
+    this.jumpVelocity = 7;
 
     this.pitchObject = new THREE.Object3D();
     this.pitchObject.add(camera);
@@ -158,7 +157,7 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 
       case "Space":
         if (this.canJump) {
-          this.cannonBody.applyForce(new CANNON.Vec3(0, this.jumpVelocity, 0));
+          this.velocity.y = this.jumpVelocity;
         }
         this.canJump = false;
         break;
@@ -204,8 +203,7 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
       return;
     }
 
-    delta *= 1000;
-    delta *= 0.1;
+    delta *= 100;
 
     this.inputVelocity.set(0, 0, 0);
 

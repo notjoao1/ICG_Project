@@ -8,7 +8,6 @@ import { DRACOLoader, GLTFLoader } from "three/examples/jsm/Addons.js";
 
 
 // CONSTANTS
-const TICK_RATE = 64;
 const ROCKET_INTERVAL = 800; // 800ms interval between rockets shooting
 const ROCKET_VELOCITY = 28;
 const CLOCK = new THREE.Clock(); // keeps track of time since last frame
@@ -19,11 +18,12 @@ const PLAYER_DEPTH = 0.1;
 const ROOM_WIDTH = 100;
 const ROOM_HEIGHT = 40;
 const ROOM_DEPTH = 150;
-const ROCKET_STRENGTH_MULT = 1000;
+const ROCKET_STRENGTH_MULT = 140;
 
 // three.js variables
 let camera, scene, renderer, stats;
 let material;
+let shooting = false;
 
 // cannon.js variables
 let world;
@@ -78,33 +78,28 @@ function initThree() {
   document.body.appendChild(stats.dom);
 
   // Lights
-  const ambientLight = new THREE.AmbientLight(0xffffff, 2);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
   const hemisphereLight = new THREE.HemisphereLight(
     new THREE.Color(0xffffff),
-    new THREE.Color(0x000000),
-    1
+    new THREE.Color(0xffffff),
+    0.6
   );
 
   scene.add(hemisphereLight);
 
-  /* const spotlight = new THREE.SpotLight(0xffffff, 0.9, 0, Math.PI / 4, 1);
-  spotlight.intensity = 10000;
-  spotlight.position.set(10, ROOM_HEIGHT / 2, 20);
-  spotlight.target.position.set(0, 0, 0);
+  // simulates sun light
+  const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+  directionalLight.position.set( 1, 400, -300 );
+  directionalLight.name = "directionalLight";
+  directionalLight.castShadow = true;
+  directionalLight.shadowMapWidth = directionalLight.shadowMapHeight = 1024*2;
 
-  spotlight.castShadow = true;
+  scene.add( directionalLight );
 
-  spotlight.shadow.camera.near = 10;
-  spotlight.shadow.camera.far = 100;
-  spotlight.shadow.camera.fov = 30;
-
-  // spotlight.shadow.bias = -0.0001
-  spotlight.shadow.mapSize.width = 2048;
-  spotlight.shadow.mapSize.height = 2048;
-
-  scene.add(spotlight); */
+  const helper = new THREE.DirectionalLightHelper( directionalLight, 5 );
+  scene.add( helper );
 
   // helper axis
   const axisHelper = new THREE.AxesHelper(5);
@@ -148,35 +143,40 @@ function initThree() {
   material = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 1000 });
 
   // dev texture
-  const texture = new THREE.TextureLoader().load("assets/dev_texture.png");
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(ROOM_WIDTH, ROOM_HEIGHT); // Repeat 4 times horizontally, 2 times vertically
+  const textureWalls = new THREE.TextureLoader().load("assets/stone.jpg");
+  textureWalls.wrapS = THREE.RepeatWrapping;
+  textureWalls.wrapT = THREE.RepeatWrapping;
+  textureWalls.repeat.set(ROOM_WIDTH, ROOM_HEIGHT); // Repeat 4 times horizontally, 2 times vertically
 
-  const textureGray = new THREE.TextureLoader().load(
-    "assets/dev_texture.gray.jpg"
+  const textureFloor = new THREE.TextureLoader().load(
+    "assets/grasslight-big.jpg"
   );
-  textureGray.wrapS = THREE.RepeatWrapping;
-  textureGray.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(ROOM_WIDTH, ROOM_HEIGHT);
+  textureFloor.wrapS = THREE.RepeatWrapping;
+  textureFloor.wrapT = THREE.RepeatWrapping;
+  textureFloor.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
 
-  const devMaterial = new THREE.MeshPhongMaterial({
-    map: texture,
+  const wallsMaterial = new THREE.MeshPhongMaterial({
+    map: textureWalls,
     color: 0xffffff,
     shininess: 6000,
   });
 
+  const floorMaterial = new THREE.MeshPhongMaterial({
+    map: textureFloor,
+    shininess: 6000,
+  })
+
   // Floor
   const floorGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
   floorGeometry.rotateX(-Math.PI / 2);
-  const floor = new THREE.Mesh(floorGeometry, devMaterial);
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.receiveShadow = true;
   scene.add(floor);
 
   // Right wall
   const rightWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
   rightWallGeometry.rotateY(-Math.PI / 2);
-  const rightWall = new THREE.Mesh(rightWallGeometry, devMaterial);
+  const rightWall = new THREE.Mesh(rightWallGeometry, wallsMaterial);
   rightWall.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
   rightWall.receiveShadow = true;
   scene.add(rightWall);
@@ -184,21 +184,21 @@ function initThree() {
   // Left wall
   const leftWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
   leftWallGeometry.rotateY(Math.PI / 2);
-  const leftWall = new THREE.Mesh(leftWallGeometry, devMaterial);
+  const leftWall = new THREE.Mesh(leftWallGeometry, wallsMaterial);
   leftWall.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
   leftWall.receiveShadow = true;
   scene.add(leftWall);
 
   // Front wall
   const frontWallGeomtry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
-  const frontWall = new THREE.Mesh(frontWallGeomtry, devMaterial);
+  const frontWall = new THREE.Mesh(frontWallGeomtry, wallsMaterial);
   frontWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
   frontWall.receiveShadow = true;
   scene.add(frontWall);
 
   // Back wall
   const backWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
-  const backWall = new THREE.Mesh(backWallGeometry, devMaterial);
+  const backWall = new THREE.Mesh(backWallGeometry, wallsMaterial);
   backWall.position.set(0, ROOM_HEIGHT / 2, ROOM_DEPTH / 2);
   backWall.rotation.y = Math.PI;
   backWall.receiveShadow = true;
@@ -221,7 +221,7 @@ function initThree() {
     function ( gltf ) {
 
       gltf.scene.scale.set(0.1, 0.1, 0.1);
-      gltf.scene.position.add(new THREE.Vector3(0, 0.5, 0));
+      gltf.scene.position.add(new THREE.Vector3(0, 0.45, 0));
       playerMesh.add(gltf.scene);
 
       gltf.animations; // Array<THREE.AnimationClip>
@@ -245,14 +245,27 @@ function onWindowResize() {
 }
 
 function initCannon() {
-  world = new CANNON.World(new CANNON.Vec3(0, -9.8, 0));
+  world = new CANNON.World({gravity: new CANNON.Vec3(0, -20, 0)});
 
   // Tweak contact properties.
   // Contact stiffness - use to make softer/harder contacts
-  world.defaultContactMaterial.contactEquationStiffness = 1e9;
+  //world.defaultContactMaterial.contactEquationStiffness = 1e9;
 
   // Stabilization time in number of timesteps
-  world.defaultContactMaterial.contactEquationRelaxation = 4;
+  //world.defaultContactMaterial.contactEquationRelaxation = 4;
+
+  world.defaultContactMaterial.friction = 0.9;
+  world.defaultContactMaterial.restitution = 0;
+
+  const physicsMaterial = new CANNON.Material({
+    friction: 0.9,
+    restitution: 0,
+  });
+  const worldContactMaterial = new CANNON.ContactMaterial(physicsMaterial, physicsMaterial, {
+    friction: 1,
+    restitution: 0,
+  });
+  world.addContactMaterial(worldContactMaterial);
 
   const solver = new CANNON.GSSolver();
   solver.iterations = 7;
@@ -261,21 +274,7 @@ function initCannon() {
   // use this to test non-split solver
   // world.solver = solver
 
-  world.gravity.set(0, -9.8, 0);
-
-  // Create a slippery material (friction coefficient = 0.0)
-  physicsMaterial = new CANNON.Material("physics");
-  const physics_physics = new CANNON.ContactMaterial(
-    physicsMaterial,
-    physicsMaterial,
-    {
-      friction: 0,
-      restitution: 1,
-    }
-  );
-
-  // We must add the contact materials to the world
-  world.addContactMaterial(physics_physics);
+  //world.gravity.set(0, -9.8, 0);
 
   // Create the user collision box
   playerShape = new CANNON.Box(
@@ -283,15 +282,24 @@ function initCannon() {
   );
   // less bouncy material for player
   const playerMat = new CANNON.Material({
-    friction: 0,
-    restitution: 100,
+    friction: 1,
+    restitution: 0,
   });
-  playerBody = new CANNON.Body({ mass: 50, material: playerMat });
+  playerBody = new CANNON.Body({ mass: 5, material: playerMat });
   playerBody.addShape(playerShape);
-  playerBody.position.set(0, 80, 0);
+  //playerBody.position.set(0, 80, 0);
   playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
+
+  // TODO: remove later
+  const debugBody = new CANNON.Body({
+    mass: 50, material: playerMat,
+    shape: new CANNON.Box(new CANNON.Vec3(PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_DEPTH))
+  })
+  debugBody.position.set(0, 100, 0);
+  world.addBody(debugBody);
+
 
   // Create the ground plane
   const groundShape = new CANNON.Plane();
@@ -337,134 +345,22 @@ function initCannon() {
   backWallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
   world.addBody(backWallBody);
 
-  // The shooting balls
-  const ballShape = new CANNON.Sphere(0.2);
-  const ballGeometry = new THREE.SphereGeometry(ballShape.radius, 32, 32);
-
-  // Returns a vector pointing the the diretion the camera is at
-  function getShootDirection() {
-    const vector = new THREE.Vector3(0, 0, 1);
-    vector.unproject(camera);
-
-    return vector.sub(playerBody.position).normalize();
-  }
-
-  window.addEventListener("click", (event) => {
+  window.addEventListener("mousedown", (event) => {
     // if paused, just return
     if (!controls.enabled) {
       return;
     }
+    shooting = true;
+  });
 
-    // don't shoot rocket if interval between rockets hasn't passed
-    if (performance.now() - lastRocketTime < ROCKET_INTERVAL) return;
+  window.addEventListener("mouseup", (event) => {
+    // if paused, just return
+    if (!controls.enabled) {
+      return;
+    }
+    shooting = false;
 
-    // CREATE ROCKET IN PHYSICS WORLD + THREE.JS WORLD
-    const rocketBody = new CANNON.Body({
-      mass: 1,
-      type: CANNON.Body.DYNAMIC,
-    });
-    rocketBody.collisionResponse = 0;
-    rocketBody.addShape(ballShape);
-
-    // Handles Rocket collisions with other objects:
-    //  - disappears
-    //  - applies force to player
-    const collisionHandler = (event) => {
-      // don't do anything if collided with player
-      if (event.contact.bj == playerBody) return;
-      // ignore collisions with other rockets
-      for (const rocketBodyId of rocketBodyMap.keys()) {
-        if (event.contact.bj.id == rocketBodyId) {
-          return;
-        }
-      }
-      event.contact.bi.removeEventListener(
-        CANNON.Body.COLLIDE_EVENT_NAME,
-        collisionHandler
-      );
-
-      // schedule rocket for removal on new frame
-      rocketToRemoveId = event.contact.bi.id;
-
-      const directionalVectorForForce =
-        getDirectionalVectorFromCollisionToPlayer(event);
-
-      const distanceFromCollision = directionalVectorForForce.length();
-
-      const unitDirectionalVec = directionalVectorForForce.unit();
-
-      // directional unit vector between player and collision point
-      const knockback_strength =
-        ROCKET_STRENGTH_MULT - distanceFromCollision * 200;
-      const impulse = new CANNON.Vec3(
-        unitDirectionalVec.x *
-          (knockback_strength < 0 ? 0 : knockback_strength),
-        unitDirectionalVec.y *
-          (knockback_strength < 0 ? 0 : knockback_strength),
-        unitDirectionalVec.z * (knockback_strength < 0 ? 0 : knockback_strength)
-      );
-      console.log("IMPULSE", impulse);
-      // applies impulse in playerBody center
-      playerBody.applyImpulse(impulse, new CANNON.Vec3(0, 0, 0));
-    };
-
-    // returns UNIT directional vector from collision point to player's position
-    // used to apply a knockback force when a rocket explodes
-    const getDirectionalVectorFromCollisionToPlayer = (collisionEvent) => {
-      const playerPos = playerBody.position;
-      const collisionPoint = getCollisionPoint(
-        collisionEvent.contact.bi.position,
-        collisionEvent.contact.ri
-      );
-
-      return playerPos.vsub(collisionPoint);
-    };
-
-    // returns vector from world center to the collision point
-    const getCollisionPoint = (rocketPos, worldContactPoint) => {
-      return rocketPos.vadd(worldContactPoint);
-    };
-
-    rocketBody.addEventListener("collide", collisionHandler);
-
-    // rocket in THREE world
-    const rocketMesh = new THREE.Mesh(ballGeometry, material);
-
-    rocketMesh.castShadow = true;
-    rocketMesh.receiveShadow = true;
-
-    world.addBody(rocketBody);
-    scene.add(rocketMesh);
-    rocketBodyMap.set(rocketBody.id, {
-      mesh_id: rocketMesh.id,
-      body: rocketBody,
-    });
-    rocketMeshesMap.set(rocketMesh.id, rocketMesh);
-
-    const shootDirection = getShootDirection();
-    rocketBody.velocity.set(
-      shootDirection.x * ROCKET_VELOCITY,
-      shootDirection.y * ROCKET_VELOCITY,
-      shootDirection.z * ROCKET_VELOCITY
-    );
-
-    // Move the rocket outside of the player box model
-    const x =
-      playerBody.position.x +
-      shootDirection.x * (PLAYER_WIDTH * 1.5 + ballShape.radius);
-
-    const y =
-      playerBody.position.y +
-      shootDirection.y * (PLAYER_HEIGHT * 1.5 + ballShape.radius);
-
-    const z =
-      playerBody.position.z +
-      shootDirection.z * (PLAYER_DEPTH * 1.5 + ballShape.radius);
-
-    rocketBody.position.set(x, y, z);
-    rocketMesh.position.copy(rocketBody.position);
-
-    lastRocketTime = performance.now();
+    
   });
 }
 
@@ -476,13 +372,7 @@ function initCannonDebugger() {
 // This function initializes the PointerLockControls wrapper by Cannon
 // if you click "ESC" you open the menu. while on the menu, if you click the screen, you resume the game
 function initPointerLock() {
-  /* // DEBUG: TESTING GRAVITY, REMOVE LATER!!!!
-  const debugBody = new CANNON.Body({ mass: 10, material: physicsMaterial });
-  debugBody.addShape(new CANNON.Box(new CANNON.Vec3(1, 1, 1)));
-  world.addBody(debugBody);
-  debugBody.position.set(0, 100, 0); */
-
-  controls = new PointerLockControlsCannon(camera, playerBody);
+  controls = new PointerLockControlsCannon(camera, playerBody, playerMesh);
   scene.add(controls.getObject());
 
   menu.addEventListener("click", () => {
@@ -510,6 +400,8 @@ function animate() {
   if (controls.enabled) {
     world.step(timeStep, dt);
 
+    if (shooting) shootRocket();
+
     if (rocketToRemoveId) {
       const body = rocketBodyMap.get(rocketToRemoveId).body;
       const meshId = rocketBodyMap.get(rocketToRemoveId).mesh_id;
@@ -522,12 +414,16 @@ function animate() {
     }
     // Update player's model position
     playerMesh.position.copy(playerBody.position);
-    playerMesh.quaternion.copy(playerBody.quaternion);
+    playerMesh.quaternion.copy(camera.quaternion);
+    //playerMesh.quaternion.copy(playerBody.quaternion);
+    //playerMesh.quaternion.x  = playerBody.quaternion.x;
+    //playerMesh.quaternion.z  = playerBody.quaternion.z;
+    //playerMesh.quaternion.w  = playerBody.quaternion.w;
 
     // Update ball positions
     for (const bodyId of rocketBodyMap.keys()) {
       const meshId = rocketBodyMap.get(bodyId).mesh_id;
-      rocketBodyMap.get(bodyId).body.force.set(0, 9.8, 0);
+      rocketBodyMap.get(bodyId).body.force.set(0, 20, 0);
       rocketMeshesMap
         .get(meshId)
         .position.copy(rocketBodyMap.get(bodyId).body.position);
@@ -536,15 +432,133 @@ function animate() {
         .quaternion.copy(rocketBodyMap.get(bodyId).body.quaternion);
     }
 
-    /* // Update box positions
-    for (let i = 0; i < boxes.length; i++) {
-      boxMeshes[i].position.copy(boxes[i].position);
-      boxMeshes[i].quaternion.copy(boxes[i].quaternion);
-    } */
   }
 
-  cannonDebugger.update();
+  //cannonDebugger.update();
   controls.update(dt);
   renderer.render(scene, camera);
   stats.update();
+}
+
+const shootRocket = () => {
+  // rockets
+  const rocketShape = new CANNON.Sphere(0.2);
+  const rocketGeometry = new THREE.SphereGeometry(rocketShape.radius, 32, 32);
+
+  // Returns a vector pointing the the diretion the camera is at
+  function getShootDirection() {
+    const vector = new THREE.Vector3(0, 0, 1);
+    vector.unproject(camera);
+
+    return vector.sub(playerBody.position).normalize();
+  }
+  // don't shoot rocket if interval between rockets hasn't passed
+  if (performance.now() - lastRocketTime < ROCKET_INTERVAL) return;
+
+  // CREATE ROCKET IN PHYSICS WORLD + THREE.JS WORLD
+  const rocketBody = new CANNON.Body({
+    mass: 1,
+    type: CANNON.Body.DYNAMIC,
+  });
+  rocketBody.collisionResponse = 0;
+  rocketBody.addShape(rocketShape);
+
+  // Handles Rocket collisions with other objects:
+  //  - disappears
+  //  - applies force to player
+  const collisionHandler = (event) => {
+    // don't do anything if collided with player
+    if (event.contact.bj == playerBody) return;
+    // ignore collisions with other rockets
+    for (const rocketBodyId of rocketBodyMap.keys()) {
+      if (event.contact.bj.id == rocketBodyId) {
+        return;
+      }
+    }
+    event.contact.bi.removeEventListener(
+      CANNON.Body.COLLIDE_EVENT_NAME,
+      collisionHandler
+    );
+
+    // schedule rocket for removal on new frame
+    rocketToRemoveId = event.contact.bi.id;
+
+    const directionalVectorForForce =
+      getDirectionalVectorFromCollisionToPlayer(event);
+
+    const distanceFromCollision = directionalVectorForForce.length();
+
+    const unitDirectionalVec = directionalVectorForForce.unit();
+
+    // directional unit vector between player and collision point
+    const knockback_strength =
+      ROCKET_STRENGTH_MULT - distanceFromCollision * (ROCKET_STRENGTH_MULT / 5);
+    const impulse = new CANNON.Vec3(
+      unitDirectionalVec.x *
+        (knockback_strength < 0 ? 0 : knockback_strength),
+      unitDirectionalVec.y *
+        (knockback_strength < 0 ? 0 : knockback_strength),
+      unitDirectionalVec.z * (knockback_strength < 0 ? 0 : knockback_strength)
+    );
+    // applies impulse in playerBody center
+    playerBody.applyImpulse(impulse, new CANNON.Vec3(0, 0, 0));
+  };
+
+  // returns UNIT directional vector from collision point to player's position
+  // used to apply a knockback force when a rocket explodes
+  const getDirectionalVectorFromCollisionToPlayer = (collisionEvent) => {
+    const playerPos = playerBody.position;
+    const collisionPoint = getCollisionPoint(
+      collisionEvent.contact.bi.position,
+      collisionEvent.contact.ri
+    );
+
+    return playerPos.vsub(collisionPoint);
+  };
+
+  // returns vector from world center to the collision point
+  const getCollisionPoint = (rocketPos, worldContactPoint) => {
+    return rocketPos.vadd(worldContactPoint);
+  };
+
+  rocketBody.addEventListener("collide", collisionHandler);
+
+  // rocket in THREE world
+  const rocketMesh = new THREE.Mesh(rocketGeometry, material);
+
+  rocketMesh.castShadow = true;
+  rocketMesh.receiveShadow = true;
+
+  world.addBody(rocketBody);
+  scene.add(rocketMesh);
+  rocketBodyMap.set(rocketBody.id, {
+    mesh_id: rocketMesh.id,
+    body: rocketBody,
+  });
+  rocketMeshesMap.set(rocketMesh.id, rocketMesh);
+
+  const shootDirection = getShootDirection();
+  rocketBody.velocity.set(
+    shootDirection.x * ROCKET_VELOCITY,
+    shootDirection.y * ROCKET_VELOCITY,
+    shootDirection.z * ROCKET_VELOCITY
+  );
+
+  // Move the rocket outside of the player box model
+  const x =
+    playerBody.position.x +
+    shootDirection.x * (PLAYER_WIDTH * 1.5 + rocketShape.radius);
+
+  const y =
+    playerBody.position.y +
+    shootDirection.y * (PLAYER_HEIGHT * 1.5 + rocketShape.radius);
+
+  const z =
+    playerBody.position.z +
+    shootDirection.z * (PLAYER_DEPTH * 1.5 + rocketShape.radius);
+
+  rocketBody.position.set(x, y, z);
+  rocketMesh.position.copy(rocketBody.position);
+
+  lastRocketTime = performance.now();
 }
