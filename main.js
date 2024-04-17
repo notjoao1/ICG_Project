@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import * as CANNON from "cannon-es";
-import CannonDebugger from "cannon-es-debugger";
+import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm';
+//import CannonDebugger from "https://unpkg.com/three@0.122.0/examples/jsm/libs/stats.module.js";
 
-import Stats from "https://unpkg.com/three@0.122.0/examples/jsm/libs/stats.module.js";
+import Stats from 'three/addons/libs/stats.module.js';
 import { PointerLockControlsCannon } from "./PointerLockControllsCannon.js";
-import { DRACOLoader, GLTFLoader } from "three/examples/jsm/Addons.js";
+import { DRACOLoader, GLTFLoader } from "three/addons/Addons.js";
 
 
 // CONSTANTS
@@ -16,9 +16,9 @@ const PLAYER_HEIGHT = 1;
 const PLAYER_DEPTH = 0.1;
 // room dimensions
 const ROOM_WIDTH = 100;
-const ROOM_HEIGHT = 40;
+const ROOM_HEIGHT = 100;
 const ROOM_DEPTH = 150;
-const ROCKET_STRENGTH_MULT = 140;
+const ROCKET_STRENGTH_MULT = 110;
 
 // three.js variables
 let camera, scene, renderer, stats;
@@ -46,7 +46,6 @@ const menu = document.getElementById("menu");
 const crosshair = document.getElementById("crosshair");
 
 initThree();
-initLevel();
 initCannon();
 initCannonDebugger(); // comment out when not debugging physics
 initPointerLock();
@@ -91,7 +90,7 @@ function initThree() {
 
   // simulates sun light
   const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-  directionalLight.position.set( 1, 400, -300 );
+  directionalLight.position.set(20, 1000, -700 );
   directionalLight.name = "directionalLight";
   directionalLight.castShadow = true;
   directionalLight.shadowMapWidth = directionalLight.shadowMapHeight = 1024*2;
@@ -139,31 +138,52 @@ function initThree() {
   const skybox = new THREE.Mesh(skyboxGeo, materialArray);
   scene.add(skybox);
 
-  // Generic material
-  material = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 1000 });
+  const stoneTexture = new THREE.TextureLoader().load("assets/textures/stone1/stone.jpg");
+  stoneTexture.wrapS = THREE.RepeatWrapping;
+  stoneTexture.wrapT = THREE.RepeatWrapping;
+  stoneTexture.repeat.set(ROOM_WIDTH, ROOM_HEIGHT);
 
-  // dev texture
-  const textureWalls = new THREE.TextureLoader().load("assets/stone.jpg");
-  textureWalls.wrapS = THREE.RepeatWrapping;
-  textureWalls.wrapT = THREE.RepeatWrapping;
-  textureWalls.repeat.set(ROOM_WIDTH, ROOM_HEIGHT); // Repeat 4 times horizontally, 2 times vertically
+  const stoneTextureBump = new THREE.TextureLoader().load("assets/textures/stone1/stone_bump.jpg");
+  stoneTextureBump.wrapS = THREE.RepeatWrapping;
+  stoneTextureBump.wrapT = THREE.RepeatWrapping;
+  stoneTextureBump.repeat.set(ROOM_WIDTH, ROOM_HEIGHT);
+  
 
-  const textureFloor = new THREE.TextureLoader().load(
-    "assets/grasslight-big.jpg"
+  const grassTexture = new THREE.TextureLoader().load(
+    "assets/textures/grass/grass_base.jpg"
   );
-  textureFloor.wrapS = THREE.RepeatWrapping;
-  textureFloor.wrapT = THREE.RepeatWrapping;
-  textureFloor.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+  grassTexture.wrapS = THREE.RepeatWrapping;
+  grassTexture.wrapT = THREE.RepeatWrapping;
+  grassTexture.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+
+  const grassTextureAO = new THREE.TextureLoader().load(
+    "assets/textures/grass/grass_ao.jpg"
+  );
+  grassTextureAO.wrapS = THREE.RepeatWrapping;
+  grassTextureAO.wrapT = THREE.RepeatWrapping;
+  grassTextureAO.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+
+  const grassTextureBump = new THREE.TextureLoader().load(
+    "assets/textures/grass/grass_height.png"
+  );
+  grassTextureBump.wrapS = THREE.RepeatWrapping;
+  grassTextureBump.wrapT = THREE.RepeatWrapping;
+  grassTextureBump.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
 
   const wallsMaterial = new THREE.MeshPhongMaterial({
-    map: textureWalls,
-    color: 0xffffff,
+    map: stoneTexture,
+    bumpMap: stoneTextureBump,
+    bumpScale: 2,
     shininess: 6000,
   });
 
   const floorMaterial = new THREE.MeshPhongMaterial({
-    map: textureFloor,
-    shininess: 6000,
+    map: grassTexture,
+    bumpMap: grassTextureBump,
+    bumpScale: 2,
+    aoMap: grassTextureAO,
+    aoMapIntensity: 1,
+    shininess: 10000,
   })
 
   // Floor
@@ -190,8 +210,8 @@ function initThree() {
   scene.add(leftWall);
 
   // Front wall
-  const frontWallGeomtry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
-  const frontWall = new THREE.Mesh(frontWallGeomtry, wallsMaterial);
+  const frontWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
+  const frontWall = new THREE.Mesh(frontWallGeometry, wallsMaterial);
   frontWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
   frontWall.receiveShadow = true;
   scene.add(frontWall);
@@ -236,7 +256,6 @@ function initThree() {
   window.addEventListener("resize", onWindowResize);
 }
 
-function initLevel() {}
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -287,19 +306,10 @@ function initCannon() {
   });
   playerBody = new CANNON.Body({ mass: 5, material: playerMat });
   playerBody.addShape(playerShape);
-  //playerBody.position.set(0, 80, 0);
+  playerBody.position.set(0, 6, (ROOM_DEPTH/2) - 2);
   playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
-
-  // TODO: remove later
-  const debugBody = new CANNON.Body({
-    mass: 50, material: playerMat,
-    shape: new CANNON.Box(new CANNON.Vec3(PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_DEPTH))
-  })
-  debugBody.position.set(0, 100, 0);
-  world.addBody(debugBody);
-
 
   // Create the ground plane
   const groundShape = new CANNON.Plane();
@@ -307,6 +317,14 @@ function initCannon() {
   groundBody.addShape(groundShape);
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
+
+  groundBody.addEventListener("collide", (event) => {
+    // floor collided with player, teleport him to start of level
+    if (event.contact.bj == playerBody) {
+      playerBody.velocity.set(0, 0, 0);
+      playerBody.position.set(0, 6, (ROOM_DEPTH/2) - 2)
+    }
+  })
 
   // Right wall physics
   const rightWallShape = new CANNON.Plane();
@@ -362,11 +380,131 @@ function initCannon() {
 
     
   });
+
+  initLevel();
 }
 
+
+/*
+  First level has the following jumps:
+  1. simple jump from one platform to another (simply shoot a rocket)
+  2. simple height jump (press SPACEBAR + shoot rocket)
+  3. jump between little platforms up to the end of the level
+  4. jump inside a small hole on the wall, and if you touch the wall you go back
+*/
+function initLevel() {
+  const stoneTexture = new THREE.TextureLoader().load("assets/textures/stone1/stone.jpg");
+  const stoneBumpMap = new THREE.TextureLoader().load("assets/textures/stone1/stone-bump.jpg");
+  stoneTexture.wrapS = THREE.RepeatWrapping;
+  stoneTexture.wrapT = THREE.RepeatWrapping;
+  stoneTexture.repeat.set(ROOM_WIDTH, 5); // Repeat 4 times horizontally, 2 times vertically
+  const stoneTextureMat = new THREE.MeshPhongMaterial({
+    map: stoneTexture,
+    bumpMap: stoneBumpMap,
+    bumpScale: 0.3,
+  }); 
+
+  const platform_depth = 10;
+  const firstPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 5, platform_depth);
+  const firstPlatformMesh = new THREE.Mesh(firstPlatformGeometry, stoneTextureMat);
+  firstPlatformMesh.position.set(0, 2.5, (ROOM_DEPTH / 2) - platform_depth / 2);
+  scene.add(firstPlatformMesh);
+
+  const firstPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  firstPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 5, platform_depth)));
+  firstPlatformBody.position.set(0, 0, (ROOM_DEPTH / 2))
+  world.addBody(firstPlatformBody);
+
+  const secondPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 5, platform_depth);
+  const secondPlatformMesh = new THREE.Mesh(secondPlatformGeometry, stoneTextureMat);
+  secondPlatformMesh.position.set(0, 2.5, (ROOM_DEPTH / 2) - 25);
+  scene.add(secondPlatformMesh);
+
+  const secondPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  secondPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 5, platform_depth / 2)));
+  secondPlatformBody.position.set(0, 0, (ROOM_DEPTH / 2) - 25)
+  world.addBody(secondPlatformBody);
+
+  const thirdPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 20, platform_depth);
+  const thirdPlatformMesh = new THREE.Mesh(thirdPlatformGeometry, stoneTextureMat);
+  thirdPlatformMesh.position.set(0, 5, (ROOM_DEPTH / 2) - 45);
+  scene.add(thirdPlatformMesh);
+
+  const thirdPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  thirdPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 10, platform_depth / 2)));
+  thirdPlatformBody.position.set(0, 5, (ROOM_DEPTH / 2) - 45)
+  world.addBody(thirdPlatformBody);
+
+  const smallPlatTexture = new THREE.TextureLoader().load("assets/textures/stone2/stone_base.jpg");
+  smallPlatTexture.wrapS = THREE.RepeatWrapping;
+  smallPlatTexture.wrapT = THREE.RepeatWrapping;
+  smallPlatTexture.repeat.set(2,2);
+
+
+  const smallPlatAO = new THREE.TextureLoader().load("assets/textures/stone2/stone_ao.jpg");
+  smallPlatAO.wrapS = THREE.RepeatWrapping;
+  smallPlatAO.wrapT = THREE.RepeatWrapping;
+
+
+  const smallPlatBump = new THREE.TextureLoader().load("assets/textures/stone2/stone_height.png");
+  smallPlatBump.wrapS = THREE.RepeatWrapping;
+  smallPlatBump.wrapT = THREE.RepeatWrapping;
+
+
+  const smallPlatMat = new THREE.MeshPhongMaterial({
+    map: smallPlatTexture,
+    bumpMap: smallPlatBump,
+    aoMap: smallPlatAO,
+    aoMapIntensity: 0.1,
+    bumpScale: 10,
+  })
+
+
+  const smallPlat1Geometry = new THREE.BoxGeometry(6, 2, 6);
+  const smallPlat1Mesh = new THREE.Mesh(smallPlat1Geometry, smallPlatMat);
+  smallPlat1Mesh.position.set(10, 25, (ROOM_DEPTH / 2) - 60);
+  scene.add(smallPlat1Mesh);
+
+  const smallPlat1Body = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  smallPlat1Body.addShape(new CANNON.Box(new CANNON.Vec3(3, 1, 3)));
+  smallPlat1Body.position.set(10, 25, (ROOM_DEPTH / 2) - 60);
+  world.addBody(smallPlat1Body);
+
+  const smallPlat2Geometry = new THREE.BoxGeometry(6, 2, 6);
+  const smallPlat2Mesh = new THREE.Mesh(smallPlat2Geometry, smallPlatMat);
+  smallPlat2Mesh.position.set(-10, 30, (ROOM_DEPTH / 2) - 65);
+  scene.add(smallPlat2Mesh);
+
+  const smallPlat2Body = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  smallPlat2Body.addShape(new CANNON.Box(new CANNON.Vec3(3, 1, 3)));
+  smallPlat2Body.position.set(-10, 30, (ROOM_DEPTH / 2) - 65);
+  world.addBody(smallPlat2Body);
+
+  const smallPlat3Geometry = new THREE.BoxGeometry(3, 1, 3);
+  const smallPlat3Mesh = new THREE.Mesh(smallPlat3Geometry, smallPlatMat);
+  smallPlat3Mesh.position.set(0, 40, (ROOM_DEPTH / 2) - 70);
+  scene.add(smallPlat3Mesh);
+
+  const smallPlat3Body = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  smallPlat3Body.addShape(new CANNON.Box(new CANNON.Vec3(1.5, 0.5, 1.5)));
+  smallPlat3Body.position.set(0, 40, (ROOM_DEPTH / 2) - 70);
+  world.addBody(smallPlat3Body);
+
+  const fourthPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 50, platform_depth);
+  const fourthPlatformMesh = new THREE.Mesh(fourthPlatformGeometry, stoneTextureMat);
+  fourthPlatformMesh.position.set(0, 25, (ROOM_DEPTH / 2) - 90);
+  scene.add(fourthPlatformMesh);
+
+  const fourthPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  fourthPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 25, platform_depth / 2)));
+  fourthPlatformBody.position.set(0, 25, (ROOM_DEPTH / 2) - 90)
+  world.addBody(fourthPlatformBody);
+}
+
+
 function initCannonDebugger() {
-  const canDebugger = new CannonDebugger(scene, world);
-  cannonDebugger = canDebugger;
+  /* const canDebugger = new CannonDebugger(scene, world);
+  cannonDebugger = canDebugger; */
 }
 
 // This function initializes the PointerLockControls wrapper by Cannon
@@ -415,10 +553,7 @@ function animate() {
     // Update player's model position
     playerMesh.position.copy(playerBody.position);
     playerMesh.quaternion.copy(camera.quaternion);
-    //playerMesh.quaternion.copy(playerBody.quaternion);
-    //playerMesh.quaternion.x  = playerBody.quaternion.x;
-    //playerMesh.quaternion.z  = playerBody.quaternion.z;
-    //playerMesh.quaternion.w  = playerBody.quaternion.w;
+    playerMesh.quaternion.copy(playerBody.quaternion);
 
     // Update ball positions
     for (const bodyId of rocketBodyMap.keys()) {
@@ -434,7 +569,7 @@ function animate() {
 
   }
 
-  //cannonDebugger.update();
+  /* cannonDebugger.update(); */
   controls.update(dt);
   renderer.render(scene, camera);
   stats.update();
