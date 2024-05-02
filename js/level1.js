@@ -17,6 +17,16 @@ const ROOM_DEPTH = 150;
 import * as THREE from "three";
 import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm';
 
+/**
+ * @param world CANNON-es world to add physics bodies to.
+ * @param scene THREE.js scene to add meshes in.
+ * @param playerBody Cannon physics body required to set collision events with the physics world.
+ */
+export function loadLevel1(scene, world, playerBody) {
+    loadLevel1THREE(scene);
+    loadLevel1CANNON(world, playerBody);
+}
+
 function loadLevel1THREE(scene) {
   //**********************************************************/
   //    Load level boundaries - walls and floor plane
@@ -299,12 +309,3 @@ function loadLevel1CANNON(world, playerBody) {
 }
 
 
- /**
-  * @param world CANNON-es world to add physics bodies to.
-  * @param scene THREE.js scene to add meshes in.
-  * @param playerBody Cannon physics body required to set collision events with the physics world.
-  */
-export function loadLevel1(scene, world, playerBody) {
-    loadLevel1THREE(scene);
-    loadLevel1CANNON(world, playerBody);
-}
