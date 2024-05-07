@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm';
-import { PLAYER_DEPTH, PLAYER_WIDTH, PLAYER_HEIGHT } from "../main";
+import { PLAYER_DEPTH, PLAYER_WIDTH, PLAYER_HEIGHT } from "./constants"
 import { DRACOLoader, GLTFLoader } from "three/addons/Addons.js";
 
 
