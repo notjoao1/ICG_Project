@@ -13,9 +13,11 @@
 const ROOM_WIDTH = 100;
 const ROOM_HEIGHT = 100;
 const ROOM_DEPTH = 150;
+const HOLE_SPACE = 3; // 6th jump hole space - the level with a small hole to pass through
 
 import * as THREE from "three";
 import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm';
+import { PLAYER_HEIGHT } from "./constants";
 
 /**
  * @param world CANNON-es world to add physics bodies to.
@@ -197,6 +199,28 @@ function loadLevel1THREE(scene) {
   fourthPlatformMesh.position.set(0, 25, (ROOM_DEPTH / 2) - 90);
   scene.add(fourthPlatformMesh);
 
+  // hole in the wall thing
+  const topWallHoleGeometry = new THREE.BoxGeometry(ROOM_WIDTH, (ROOM_HEIGHT / 2) - HOLE_SPACE, 1);
+  const topWallHoleMesh = new THREE.Mesh(topWallHoleGeometry, stoneTextureMat);
+  // the height is set by adding to the center of the room's height, which is (ROOM_HEIGHT / 2),
+  // the offset of this wall, which is (ROOM_HEIGHT / 4) + HOLE_SPACE / 2
+  topWallHoleMesh.position.set(0, (ROOM_HEIGHT / 2) + (ROOM_HEIGHT / 4) + HOLE_SPACE / 2, (ROOM_DEPTH / 2) - 110);
+  scene.add(topWallHoleMesh);
+
+  const bottomWallHoleGeometry = new THREE.BoxGeometry(ROOM_WIDTH, (ROOM_HEIGHT / 2) - HOLE_SPACE, 1);
+  const bottomWallHoleMesh = new THREE.Mesh(bottomWallHoleGeometry, stoneTextureMat);
+  bottomWallHoleMesh.position.set(0, (ROOM_HEIGHT / 2) - (ROOM_HEIGHT / 4) - HOLE_SPACE / 2, (ROOM_DEPTH / 2) - 110);
+  scene.add(bottomWallHoleMesh);
+
+  const leftWallHoleGeometry = new THREE.BoxGeometry(ROOM_WIDTH / 2 - HOLE_SPACE, ROOM_HEIGHT, 0.99);
+  const leftWallHoleMesh = new THREE.Mesh(leftWallHoleGeometry, stoneTextureMat);
+  leftWallHoleMesh.position.set(- ROOM_WIDTH / 2 + (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110);
+  scene.add(leftWallHoleMesh);
+
+  const rightWallHoleGeometry = new THREE.BoxGeometry(ROOM_WIDTH / 2 - HOLE_SPACE, ROOM_HEIGHT, 0.99);
+  const rightWallHoleMesh = new THREE.Mesh(rightWallHoleGeometry, stoneTextureMat);
+  rightWallHoleMesh.position.set(ROOM_WIDTH / 2 - (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110);
+  scene.add(rightWallHoleMesh);
 }
 
 
@@ -306,6 +330,54 @@ function loadLevel1CANNON(world, playerBody) {
   fourthPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 25, platform_depth / 2)));
   fourthPlatformBody.position.set(0, 25, (ROOM_DEPTH / 2) - 90)
   world.addBody(fourthPlatformBody);
+
+
+  // hole in the wall thing
+  const topWallHoleBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  topWallHoleBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, ((ROOM_HEIGHT / 2) - HOLE_SPACE) / 2, 1 / 2)));
+  topWallHoleBody.position.set(0, (ROOM_HEIGHT / 2) + (ROOM_HEIGHT / 4) + HOLE_SPACE / 2, (ROOM_DEPTH / 2) - 110)
+  world.addBody(topWallHoleBody);
+
+  const bottomWallHoleBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  bottomWallHoleBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, ((ROOM_HEIGHT / 2) - HOLE_SPACE) / 2, 1 / 2)));
+  bottomWallHoleBody.position.set(0, (ROOM_HEIGHT / 2) - (ROOM_HEIGHT / 4) - HOLE_SPACE / 2, (ROOM_DEPTH / 2) - 110)
+  world.addBody(bottomWallHoleBody);
+
+  const leftWallHoleBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  leftWallHoleBody.addShape(new CANNON.Box(new CANNON.Vec3((ROOM_WIDTH / 2 - HOLE_SPACE) / 2, ROOM_HEIGHT / 2, 0.99 / 2)));
+  leftWallHoleBody.position.set(- ROOM_WIDTH / 2 + (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110)
+  world.addBody(leftWallHoleBody);
+
+  const rightWallHoleBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  rightWallHoleBody.addShape(new CANNON.Box(new CANNON.Vec3((ROOM_WIDTH / 2 - HOLE_SPACE) / 2, ROOM_HEIGHT / 2, 0.99 / 2)));
+  rightWallHoleBody.position.set(- ROOM_WIDTH / 2 + (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110)
+  world.addBody(rightWallHoleBody);
+
+  // when the player hits any of the walls, he gets teleported back
+  const teleportBackToCheckpoint = () => {
+    playerBody.velocity.set(0, 0, 0);
+    playerBody.position.set(0, 50 + PLAYER_HEIGHT, (ROOM_DEPTH / 2) - 90)
+  }
+
+  leftWallHoleBody.addEventListener('collide', (event) => {
+    if (event.contact.bi == playerBody)
+      teleportBackToCheckpoint();
+  })
+
+  rightWallHoleBody.addEventListener('collide', (event) => {
+    if (event.contact.bi == playerBody)
+      teleportBackToCheckpoint();
+  })
+
+  topWallHoleBody.addEventListener('collide', (event) => {
+    if (event.contact.bi == playerBody)
+      teleportBackToCheckpoint();
+  })
+
+  bottomWallHoleBody.addEventListener('collide', (event) => {
+    if (event.contact.bi == playerBody)
+      teleportBackToCheckpoint();
+  })
 }
 
 

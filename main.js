@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm';
-import CannonDebugger from "https://unpkg.com/three@0.122.0/examples/jsm/libs/stats.module.js";
+import CannonDebugger from "https://cdn.jsdelivr.net/npm/cannon-es-debugger@1.0.0/+esm";
 
 import Stats from 'three/addons/libs/stats.module.js';
 import { PointerLockControlsCannon } from "./PointerLockControllsCannon.js";
@@ -215,7 +215,7 @@ function initCannon() {
   });
   playerBody = new CANNON.Body({ mass: 5, material: playerMat });
   playerBody.addShape(playerShape);
-  playerBody.position.set(0, 6, (150/2) - 2);
+  playerBody.position.set(0, 6, (150/2) - 2); // level 1 starting position
   playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
@@ -224,8 +224,8 @@ function initCannon() {
 
 
 function initCannonDebugger() {
-  const canDebugger = new CannonDebugger(scene, world);
-  cannonDebugger = canDebugger;
+  cannonDebugger = new CannonDebugger(scene, world);
+  console.log("cannonDebugger", cannonDebugger)
 }
 
 // This function initializes the PointerLockControls wrapper by Cannon
@@ -259,6 +259,7 @@ function animate() {
   // only go to next frame if the game is not paused
   if (controls.enabled) {
     world.step(timeStep, dt);
+    cannonDebugger.update();
 
     // Update player's model position
     playerMesh.position.copy(playerBody.position);
@@ -266,7 +267,6 @@ function animate() {
     playerMesh.quaternion.copy(playerBody.quaternion);
   }
 
-  cannonDebugger.update();
   controls.update(dt);
   renderer.render(scene, camera);
   stats.update();
