@@ -62,21 +62,21 @@ export function loadRocketHandler(scene, world, camera, playerBody, controls) {
         }
 
 
-        // Update ball positions
+        // Update rocket position and rotation
         for (const bodyId of rocketBodyMap.keys()) {
             const meshId = rocketBodyMap.get(bodyId).mesh_id;
             rocketBodyMap.get(bodyId).body.force.set(0, 20, 0);
             rocketMeshesMap
                 .get(meshId)
                 .position.copy(rocketBodyMap.get(bodyId).body.position);
-            rocketMeshesMap
+            /* rocketMeshesMap
                 .get(meshId)
-                .quaternion.copy(rocketBodyMap.get(bodyId).body.quaternion);
+                .quaternion.copy(rocketBodyMap.get(bodyId).body.quaternion); */
         }
     })
 }
 
-function loadRocketMissile(scene) {
+function loadRocketMissile() {
     const loader = new GLTFLoader();
 
     const dracoLoader = new DRACOLoader();
@@ -92,12 +92,9 @@ function loadRocketMissile(scene) {
                     node.receiveShadow = true;
                 }
             });
-            //gltf.scene.scale.set(0.05, 0.05);
             gltf.scene.rotation.x = - Math.PI / 2
             gltf.scene.scale.multiplyScalar(0.1);
             rocketMissileModel = gltf.scene.clone();
-            gltf.scene.position.set(0, 5, 60);
-            scene.add(gltf.scene);
         }
     )
 }
@@ -130,21 +127,23 @@ function shootRocket(scene, world, camera, playerBody) {
     rocketMesh.receiveShadow = true; */
   
     const rocketMesh = rocketMissileModel.clone()
-    world.addBody(rocketBody);
-    scene.add(rocketMesh);
     rocketBodyMap.set(rocketBody.id, {
-      mesh_id: rocketMesh.id,
-      body: rocketBody,
+        mesh_id: rocketMesh.id,
+        body: rocketBody,
     });
     rocketMeshesMap.set(rocketMesh.id, rocketMesh);
-  
+    
     const shootDirection = getShootDirection(camera, playerBody);
     rocketBody.velocity.set(
-      shootDirection.x * ROCKET_VELOCITY,
-      shootDirection.y * ROCKET_VELOCITY,
-      shootDirection.z * ROCKET_VELOCITY
+        shootDirection.x * ROCKET_VELOCITY,
+        shootDirection.y * ROCKET_VELOCITY,
+        shootDirection.z * ROCKET_VELOCITY
     );
-  
+    var pLocal = new THREE.Vector3( 0, 0, -1 );
+    var pWorld = pLocal.applyMatrix4( camera.matrixWorld );
+    var dir = pWorld.sub( camera.position ).normalize();
+    console.log("Camera rotation:", dir)
+    
     // Move the rocket outside of the player box model
     const x =
       playerBody.position.x +
@@ -160,6 +159,9 @@ function shootRocket(scene, world, camera, playerBody) {
   
     rocketBody.position.set(x, y, z);
     rocketMesh.position.copy(rocketBody.position);
+
+    world.addBody(rocketBody);
+    scene.add(rocketMesh);
   
     lastRocketTime = performance.now();
 }
