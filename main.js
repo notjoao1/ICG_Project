@@ -6,7 +6,7 @@ import Stats from 'three/addons/libs/stats.module.js';
 import { PointerLockControlsCannon } from "./PointerLockControllsCannon.js";
 import { DRACOLoader, GLTFLoader } from "three/addons/Addons.js";
 import { loadLevel1 } from './js/level1.js'
-import { loadRocketHandler } from "./js/rocket.js";
+import { loadRocketHandler } from "./js/rocket_missile.js";
 
 
 // CONSTANTS
@@ -263,7 +263,7 @@ function animate() {
 
     // Update player's model position
     playerMesh.position.copy(playerBody.position);
-    playerMesh.quaternion.copy(camera.quaternion);
+    //playerMesh.quaternion.copy(camera.quaternion);
     playerMesh.quaternion.copy(playerBody.quaternion);
   }
 

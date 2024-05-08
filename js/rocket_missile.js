@@ -139,10 +139,8 @@ function shootRocket(scene, world, camera, playerBody) {
         shootDirection.y * ROCKET_VELOCITY,
         shootDirection.z * ROCKET_VELOCITY
     );
-    var pLocal = new THREE.Vector3( 0, 0, -1 );
-    var pWorld = pLocal.applyMatrix4( camera.matrixWorld );
-    var dir = pWorld.sub( camera.position ).normalize();
-    console.log("Camera rotation:", dir)
+    const cameraDirection = new THREE.Vector3();
+    camera.getWorldDirection(cameraDirection)
     
     // Move the rocket outside of the player box model
     const x =
@@ -182,6 +180,7 @@ function collisionHandler(event, playerBody) {
         CANNON.Body.COLLIDE_EVENT_NAME,
         collisionHandler
     );
+    console.log("Rocket blew up")
 
     // TODO: can only remove 1 rocket per frame, if 2 rockets blow up on same frame,
     // one of them will be dangling, maybe use a queue and remove all rockets in that queue
