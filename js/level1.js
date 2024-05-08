@@ -13,7 +13,15 @@
 const ROOM_WIDTH = 100;
 const ROOM_HEIGHT = 100;
 const ROOM_DEPTH = 150;
-const HOLE_SPACE = 3; // 6th jump hole space - the level with a small hole to pass through
+const HOLE_SPACE = 4; // 6th jump hole space - the level with a small hole to pass through
+const PLATFORM_DEPTH = 10;
+const DOOR_HEIGHT = 5;
+const DOOR_WIDTH = 2.5;
+const DOOR_DEPTH = 0.3;
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+
+
 
 import * as THREE from "three";
 import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm';
@@ -134,18 +142,18 @@ function loadLevel1THREE(scene) {
     bumpScale: 0.3,
   }); 
 
-  const platform_depth = 10;
-  const firstPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 5, platform_depth);
+  const PLATFORM_DEPTH = 10;
+  const firstPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 5, PLATFORM_DEPTH);
   const firstPlatformMesh = new THREE.Mesh(firstPlatformGeometry, stoneTextureMat);
-  firstPlatformMesh.position.set(0, 2.5, (ROOM_DEPTH / 2) - platform_depth / 2);
+  firstPlatformMesh.position.set(0, 2.5, (ROOM_DEPTH / 2) - PLATFORM_DEPTH / 2);
   scene.add(firstPlatformMesh);
 
-  const secondPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 5, platform_depth);
+  const secondPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 5, PLATFORM_DEPTH);
   const secondPlatformMesh = new THREE.Mesh(secondPlatformGeometry, stoneTextureMat);
   secondPlatformMesh.position.set(0, 2.5, (ROOM_DEPTH / 2) - 25);
   scene.add(secondPlatformMesh);
 
-  const thirdPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 20, platform_depth);
+  const thirdPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 20, PLATFORM_DEPTH);
   const thirdPlatformMesh = new THREE.Mesh(thirdPlatformGeometry, stoneTextureMat);
   thirdPlatformMesh.position.set(0, 5, (ROOM_DEPTH / 2) - 45);
   scene.add(thirdPlatformMesh);
@@ -194,7 +202,7 @@ function loadLevel1THREE(scene) {
  
   // end of little platforms
 
-  const fourthPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 50, platform_depth);
+  const fourthPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 50, PLATFORM_DEPTH);
   const fourthPlatformMesh = new THREE.Mesh(fourthPlatformGeometry, stoneTextureMat);
   fourthPlatformMesh.position.set(0, 25, (ROOM_DEPTH / 2) - 90);
   scene.add(fourthPlatformMesh);
@@ -221,6 +229,14 @@ function loadLevel1THREE(scene) {
   const rightWallHoleMesh = new THREE.Mesh(rightWallHoleGeometry, stoneTextureMat);
   rightWallHoleMesh.position.set(ROOM_WIDTH / 2 - (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110);
   scene.add(rightWallHoleMesh);
+
+
+  const lastPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 10, PLATFORM_DEPTH);
+  const lastPlatformMesh = new THREE.Mesh(lastPlatformGeometry, stoneTextureMat);
+  lastPlatformMesh.position.set(0, 5, - ROOM_DEPTH / 2 + PLATFORM_DEPTH / 2);
+  scene.add(lastPlatformMesh);
+
+  loadTeleportToLevel2_THREE(scene);
 }
 
 
@@ -290,19 +306,18 @@ function loadLevel1CANNON(world, playerBody) {
   //*************************************************************************/
   //    Load world platforms and platforms - 3d bodies with collision
   //*************************************************************************/
-  const platform_depth = 10;
   const firstPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  firstPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 5, platform_depth)));
+  firstPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 5, PLATFORM_DEPTH)));
   firstPlatformBody.position.set(0, 0, (ROOM_DEPTH / 2))
   world.addBody(firstPlatformBody);
 
   const secondPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  secondPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 5, platform_depth / 2)));
+  secondPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 5, PLATFORM_DEPTH / 2)));
   secondPlatformBody.position.set(0, 0, (ROOM_DEPTH / 2) - 25)
   world.addBody(secondPlatformBody);
 
   const thirdPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  thirdPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 10, platform_depth / 2)));
+  thirdPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 10, PLATFORM_DEPTH / 2)));
   thirdPlatformBody.position.set(0, 5, (ROOM_DEPTH / 2) - 45)
   world.addBody(thirdPlatformBody);
 
@@ -327,7 +342,7 @@ function loadLevel1CANNON(world, playerBody) {
   // end of little platforms
 
   const fourthPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  fourthPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 25, platform_depth / 2)));
+  fourthPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 25, PLATFORM_DEPTH / 2)));
   fourthPlatformBody.position.set(0, 25, (ROOM_DEPTH / 2) - 90)
   world.addBody(fourthPlatformBody);
 
@@ -350,7 +365,7 @@ function loadLevel1CANNON(world, playerBody) {
 
   const rightWallHoleBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
   rightWallHoleBody.addShape(new CANNON.Box(new CANNON.Vec3((ROOM_WIDTH / 2 - HOLE_SPACE) / 2, ROOM_HEIGHT / 2, 0.99 / 2)));
-  rightWallHoleBody.position.set(- ROOM_WIDTH / 2 + (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110)
+  rightWallHoleBody.position.set(ROOM_WIDTH / 2 - (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110)
   world.addBody(rightWallHoleBody);
 
   // when the player hits any of the walls, he gets teleported back
@@ -378,6 +393,44 @@ function loadLevel1CANNON(world, playerBody) {
     if (event.contact.bi == playerBody)
       teleportBackToCheckpoint();
   })
+
+
+  const lastPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  lastPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 5, PLATFORM_DEPTH / 2)));
+  lastPlatformBody.position.set(0, 5, - ROOM_DEPTH / 2 + PLATFORM_DEPTH / 2)
+  world.addBody(lastPlatformBody);
 }
 
 
+// creates the necessary meshes to display a "door" that teleports the user to the next level
+function loadTeleportToLevel2_THREE(scene) {
+  const doorBackgroundGeometry = new THREE.BoxGeometry(DOOR_WIDTH, DOOR_HEIGHT, DOOR_DEPTH);
+  const doorBackgroundMaterial = new THREE.MeshPhongMaterial({color: new THREE.Color(0xff00ff), side: THREE.DoubleSide})
+  const doorBackgroundMesh = new THREE.Mesh(doorBackgroundGeometry, doorBackgroundMaterial);
+  doorBackgroundMesh.position.set(0, 10 + (DOOR_HEIGHT / 2), - (ROOM_DEPTH / 2) + DOOR_DEPTH / 2)
+  scene.add(doorBackgroundMesh);
+
+  const fontLoader = new FontLoader();
+
+  fontLoader.load( 'https://cdn.jsdelivr.net/gh/mrdoob/three.js/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+    const textSize = 4;  
+    const level2TextGeometry = new TextGeometry('LEVEL 2', {
+      font: font,
+      size: textSize,
+      depth: 0.1,
+      curveSegments: 12,
+      bevelEnabled: false
+    });
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+    const textMesh = new THREE.Mesh(level2TextGeometry, material);
+    // text above the door
+    textMesh.position.set(- textSize * 2, 15 + (DOOR_HEIGHT / 2), - (ROOM_DEPTH / 2) + DOOR_DEPTH / 2);
+    scene.add(textMesh);
+  });
+}
+
+// handles teleporting the player to level 2when he collides with this "door" teleport 
+function loadTeleportToLevel2_CANNON(world, playerBody) {
+
+}
