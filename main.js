@@ -183,8 +183,8 @@ function initCannon() {
   });
   playerBody = new CANNON.Body({ mass: 5, material: playerMat });
   playerBody.addShape(playerShape);
-  playerBody.position.set(0, 6, (150/2) - 2); // level 1 starting position
-  //playerBody.position.set(0, 51, -20);
+  //playerBody.position.set(0, 6, (150/2) - 2); // level 1 starting position
+  playerBody.position.set(200, 51, -20);
   playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
@@ -228,7 +228,7 @@ function animate() {
   // only go to next frame if the game is not paused
   if (controls.enabled) {
     world.step(timeStep, dt);
-    //cannonDebugger.update();
+    cannonDebugger.update();
 
     // Update player's model position
     playerMesh.position.copy(playerBody.position);

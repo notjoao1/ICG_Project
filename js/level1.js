@@ -169,7 +169,7 @@ function loadLevel1THREE(scene) {
   );
   stoneTexturePlatforms.wrapS = THREE.RepeatWrapping;
   stoneTexturePlatforms.wrapT = THREE.RepeatWrapping;
-  stoneTexturePlatforms.repeat.set(ROOM_WIDTH, 5); // Repeat 4 times horizontally, 2 times vertically
+  stoneTexturePlatforms.repeat.set(ROOM_WIDTH, 5);
   const stoneTextureMat = new THREE.MeshPhongMaterial({
     map: stoneTexturePlatforms,
     bumpMap: stoneBumpMap,
@@ -419,7 +419,7 @@ function loadLevel1CANNON(world, playerBody) {
   world.addBody(backWallBody);
 
   //*************************************************************************/
-  //    Load world platforms and platforms - 3d bodies with collision
+  //    Load world platforms - 3d bodies with collision
   //*************************************************************************/
   const firstPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
   firstPlatformBody.addShape(

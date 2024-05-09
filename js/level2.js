@@ -15,7 +15,8 @@ import { LEVEL1_ROOM_DEPTH, LEVEL1_ROOM_WIDTH } from "./constants";
 const X_OFFSET = LEVEL1_ROOM_WIDTH + 100;
 const ROOM_WIDTH = 100;
 const ROOM_HEIGHT = 100;
-const ROOM_DEPTH = 150;
+const ROOM_DEPTH = 250;
+const PLATFORM_DEPTH = 10;
 import * as THREE from "three";
 import * as CANNON from "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm";
 
@@ -80,6 +81,37 @@ function loadLevel2THREE(scene) {
     map: lavaTexture,
   });
 
+  const stoneWallTexture = new THREE.TextureLoader().load(
+    "assets/textures/stone3/wall_stone_base.jpg"
+  );
+  stoneWallTexture.wrapS = THREE.RepeatWrapping;
+  stoneWallTexture.wrapT = THREE.RepeatWrapping;
+  stoneWallTexture.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+
+  const stoneWallTextureAO = new THREE.TextureLoader().load(
+    "assets/textures/stone3/wall_stone_ao.jpg"
+  );
+  stoneWallTextureAO.wrapS = THREE.RepeatWrapping;
+  stoneWallTextureAO.wrapT = THREE.RepeatWrapping;
+  stoneWallTextureAO.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+
+  const stoneWallTextureBump = new THREE.TextureLoader().load(
+    "assets/textures/stone3/wall_stone_normal.jpg"
+  );
+  stoneWallTextureBump.wrapS = THREE.RepeatWrapping;
+  stoneWallTextureBump.wrapT = THREE.RepeatWrapping;
+  stoneWallTextureBump.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+
+
+  const wallsMaterial = new THREE.MeshPhongMaterial({
+    map: stoneWallTexture,
+    bumpMap: stoneWallTextureBump,
+    bumpScale: 2,
+    aoMap: stoneWallTextureAO,
+    aoMapIntensity: 1.5,
+    shininess: 6000,
+  });
+
   // Floor
   const floorGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
   floorGeometry.rotateX(-Math.PI / 2);
@@ -87,6 +119,102 @@ function loadLevel2THREE(scene) {
   floor.position.x = X_OFFSET;
   floor.receiveShadow = true;
   scene.add(floor);
+
+  // Right wall
+  const rightWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
+  rightWallGeometry.rotateY(-Math.PI / 2);
+  const rightWall = new THREE.Mesh(rightWallGeometry, wallsMaterial);
+  rightWall.position.set(X_OFFSET + ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+  rightWall.receiveShadow = true;
+  rightWall.castShadow = true;
+  scene.add(rightWall);
+
+  // Left wall
+  const leftWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
+  leftWallGeometry.rotateY(Math.PI / 2);
+  const leftWall = new THREE.Mesh(leftWallGeometry, wallsMaterial);
+  leftWall.position.set(X_OFFSET + (-ROOM_WIDTH / 2), ROOM_HEIGHT / 2, 0);
+  leftWall.receiveShadow = true;
+  leftWall.castShadow = true;
+  scene.add(leftWall);
+
+  // Front wall
+  const frontWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
+  const frontWall = new THREE.Mesh(frontWallGeometry, wallsMaterial);
+  frontWall.position.set(X_OFFSET, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
+  frontWall.receiveShadow = true;
+  frontWall.castShadow = true;
+  scene.add(frontWall);
+
+  // Back wall
+  const backWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
+  const backWall = new THREE.Mesh(backWallGeometry, wallsMaterial);
+  backWall.position.set(X_OFFSET, ROOM_HEIGHT / 2, ROOM_DEPTH / 2);
+  backWall.rotation.y = Math.PI;
+  backWall.receiveShadow = true;
+  backWall.castShadow = true;
+  scene.add(backWall);
+
+  //**********************************************************/
+  //    Load level elements - platforms and all obstacles
+  //**********************************************************/
+  const lavaStoneTexturePlatformBase = new THREE.TextureLoader().load(
+    "assets/textures/lava_brick_wall/bark_willow_base.jpg"
+  );
+  const lavaStoneBumpTexture = new THREE.TextureLoader().load(
+    "assets/textures/lava_brick_wall/bark_willow_normal.jpg"
+  );
+  lavaStoneTexturePlatformBase.wrapS = THREE.RepeatWrapping;
+  lavaStoneTexturePlatformBase.wrapT = THREE.RepeatWrapping;
+  lavaStoneTexturePlatformBase.repeat.set(ROOM_WIDTH, 5);
+
+  lavaStoneBumpTexture.wrapS = THREE.RepeatWrapping;
+  lavaStoneBumpTexture.wrapT = THREE.RepeatWrapping;
+  lavaStoneBumpTexture.repeat.set(ROOM_WIDTH, 5);
+
+  const lavaStoneTexturePlatform = new THREE.MeshPhongMaterial({
+    map: lavaStoneTexturePlatformBase,
+    bumpMap: lavaStoneBumpTexture,
+    bumpScale: 0.5,
+  });
+  lavaStoneTexturePlatform
+
+  const firstPlatformGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    1.5,
+    PLATFORM_DEPTH
+  );
+  const firstPlatformMesh = new THREE.Mesh(
+    firstPlatformGeometry,
+    lavaStoneTexturePlatform
+  );
+  firstPlatformMesh.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2);
+  scene.add(firstPlatformMesh);
+
+  const secondPlatformGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    1.5,
+    PLATFORM_DEPTH
+  );
+  const secondPlatformMesh = new THREE.Mesh(
+    secondPlatformGeometry,
+    lavaStoneTexturePlatform
+  );
+  secondPlatformMesh.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - 60);
+  scene.add(secondPlatformMesh);
+
+  const thirdPlatformGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    70,
+    PLATFORM_DEPTH
+  );
+  const thirdPlatformMesh = new THREE.Mesh(
+    thirdPlatformGeometry,
+    lavaStoneTexturePlatform
+  );
+  thirdPlatformMesh.position.set(X_OFFSET, 35, ROOM_DEPTH / 2 - 110);
+  scene.add(thirdPlatformMesh);
+
 }
 
 function loadLevel2CANNON(world, playerBody) {
@@ -156,4 +284,21 @@ function loadLevel2CANNON(world, playerBody) {
   );
   backWallBody.position.set(X_OFFSET, ROOM_HEIGHT / 2, ROOM_DEPTH / 2 + 1);
   world.addBody(backWallBody);
+
+  //*************************************************************************/
+  //    Load world platforms - 3d bodies with collision
+  //*************************************************************************/
+  const firstPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  firstPlatformBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1.5/2, PLATFORM_DEPTH / 2))
+  );
+  firstPlatformBody.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2);
+  world.addBody(firstPlatformBody);
+
+  const secondPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  secondPlatformBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1.5/2, PLATFORM_DEPTH / 2))
+  );
+  secondPlatformBody.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - 60);
+  world.addBody(secondPlatformBody);
 }
