@@ -16,17 +16,8 @@ const X_OFFSET = LEVEL1_ROOM_WIDTH + 100;
 const ROOM_WIDTH = 100;
 const ROOM_HEIGHT = 100;
 const ROOM_DEPTH = 150;
-const HOLE_SPACE = 4; // 6th jump hole space - the level with a small hole to pass through
-const PLATFORM_DEPTH = 10;
-const DOOR_HEIGHT = 5;
-const DOOR_WIDTH = 2.5;
-const DOOR_DEPTH = 0.3;
-import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
-import { FontLoader } from "three/addons/loaders/FontLoader.js";
-
 import * as THREE from "three";
 import * as CANNON from "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm";
-import { PLAYER_HEIGHT } from "./constants";
 
 /**
  * @param world CANNON-es world to add physics bodies to.
@@ -77,6 +68,25 @@ function loadLevel2THREE(scene) {
   const skybox = new THREE.Mesh(skyboxGeo, materialArray);
   skybox.position.x = X_OFFSET;
   scene.add(skybox);
+
+  const lavaTexture = new THREE.TextureLoader().load(
+    "assets/textures/lava/lava.jpg"
+  );
+  lavaTexture.wrapS = THREE.RepeatWrapping;
+  lavaTexture.wrapT = THREE.RepeatWrapping;
+  lavaTexture.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+
+  const floorMaterial = new THREE.MeshLambertMaterial({
+    map: lavaTexture,
+  });
+
+  // Floor
+  const floorGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
+  floorGeometry.rotateX(-Math.PI / 2);
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.position.x = X_OFFSET;
+  floor.receiveShadow = true;
+  scene.add(floor);
 }
 
 function loadLevel2CANNON(world, playerBody) {
@@ -97,13 +107,13 @@ function loadLevel2CANNON(world, playerBody) {
   groundBody.position.x = X_OFFSET;
   world.addBody(groundBody);
 
-  groundBody.addEventListener("collide", (event) => {
+  /* groundBody.addEventListener("collide", (event) => {
     // floor collided with player, teleport him to start of level
     if (event.contact.bi == playerBody) {
       playerBody.velocity.set(0, 0, 0);
       playerBody.position.set(X_OFFSET, 6, ROOM_DEPTH / 2 - 2);
     }
-  });
+  }); */
 
   // Right wall physics
   const rightWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
