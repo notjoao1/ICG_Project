@@ -564,16 +564,19 @@ function loadLevel1CANNON(world, playerBody) {
   );
   lastPlatformBody.position.set(0, 5, -ROOM_DEPTH / 2 + PLATFORM_DEPTH / 2);
   world.addBody(lastPlatformBody);
+
+  loadTeleportToLevel2_CANNON(world, playerBody);
 }
 
 
 // creates the necessary meshes to display a "door" that teleports the user to the next level
 function loadTeleportToLevel2_THREE(scene) {
-  const doorBackgroundGeometry = new THREE.BoxGeometry(DOOR_WIDTH, DOOR_HEIGHT, DOOR_DEPTH);
-  const doorBackgroundMaterial = new THREE.MeshPhongMaterial({color: new THREE.Color(0xff00ff), side: THREE.DoubleSide})
-  const doorBackgroundMesh = new THREE.Mesh(doorBackgroundGeometry, doorBackgroundMaterial);
-  doorBackgroundMesh.position.set(0, 10 + (DOOR_HEIGHT / 2), - (ROOM_DEPTH / 2) + DOOR_DEPTH / 2)
-  scene.add(doorBackgroundMesh);
+  const doorGeometry = new THREE.BoxGeometry(DOOR_WIDTH, DOOR_HEIGHT, DOOR_DEPTH);
+  const doorMaterial = new THREE.MeshPhongMaterial({color: new THREE.Color(0xff00ff), side: THREE.DoubleSide})
+  const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial
+  );
+  doorMesh.position.set(0, 10 + (DOOR_HEIGHT / 2), - (ROOM_DEPTH / 2) + DOOR_DEPTH / 2)
+  scene.add(doorMesh);
 
   const fontLoader = new FontLoader();
 
@@ -597,5 +600,16 @@ function loadTeleportToLevel2_THREE(scene) {
 
 // handles teleporting the player to level 2when he collides with this "door" teleport 
 function loadTeleportToLevel2_CANNON(world, playerBody) {
-
+  const doorBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  doorBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(DOOR_WIDTH / 2, DOOR_HEIGHT / 2, DOOR_DEPTH / 2))
+  );
+  doorBody.position.set(0, 10 + (DOOR_HEIGHT / 2), - (ROOM_DEPTH / 2) + DOOR_DEPTH / 2);
+  doorBody.addEventListener('collide', (event) => {
+    if (event.contact.bi == playerBody) {
+      playerBody.position.set(ROOM_WIDTH + 100, 6, - ROOM_DEPTH / 2);
+      playerBody.velocity.set(0, 0, 0);
+    }
+  })
+  world.addBody(doorBody);
 }
