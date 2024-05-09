@@ -108,6 +108,9 @@ function shootRocket(scene, world, camera, playerBody) {
     // don't shoot rocket if interval between rockets hasn't passed
     if (performance.now() - lastRocketTime < ROCKET_INTERVAL) return;
 
+    const worldDirection = new THREE.Vector3();
+    camera.getWorldDirection(worldDirection);
+    console.log("worldDirection, ", worldDirection)
     
     // CREATE ROCKET IN PHYSICS WORLD + THREE.JS WORLD
     const rocketBody = new CANNON.Body({

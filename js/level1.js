@@ -10,9 +10,6 @@
 */
 
 // room dimensions
-const ROOM_WIDTH = 100;
-const ROOM_HEIGHT = 100;
-const ROOM_DEPTH = 150;
 const HOLE_SPACE = 4; // 6th jump hole space - the level with a small hole to pass through
 const PLATFORM_DEPTH = 10;
 const DOOR_HEIGHT = 5;
@@ -25,7 +22,7 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 
 import * as THREE from "three";
 import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm';
-import { PLAYER_HEIGHT } from "./constants";
+import { PLAYER_HEIGHT, LEVEL1_ROOM_DEPTH as ROOM_DEPTH, LEVEL1_ROOM_HEIGHT as ROOM_HEIGHT, LEVEL1_ROOM_WIDTH as ROOM_WIDTH } from "./constants";
 
 /**
  * @param world CANNON-es world to add physics bodies to.
@@ -38,20 +35,53 @@ export function loadLevel1(scene, world, playerBody) {
 }
 
 function loadLevel1THREE(scene) {
-  //**********************************************************/
-  //    Load level boundaries - walls and floor plane
-  //**********************************************************/
+  //**************************************************************************************/
+  //    Load skybox - big cube with images inside of it. it wraps the whole first level
+  //**************************************************************************************/
+  const skyboxGeo = new THREE.BoxGeometry(ROOM_WIDTH * 2, ROOM_HEIGHT * 2, ROOM_DEPTH * 2);
+  const materialArray = [
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/level1/front.jpg"),
+      side: THREE.BackSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/level1/back.jpg"),
+      side: THREE.BackSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/level1/up.jpg"),
+      side: THREE.BackSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/level1/down.jpg"),
+      side: THREE.BackSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/level1/right.jpg"),
+      side: THREE.BackSide,
+    }),
+    new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load("assets/skybox/level1/left.jpg"),
+      side: THREE.BackSide,
+    }),
+  ];
 
-  const stoneTextureBoundaries = new THREE.TextureLoader().load("assets/textures/stone1/stone.jpg");
+  const skybox = new THREE.Mesh(skyboxGeo, materialArray);
+  scene.add(skybox);
+
+  const stoneTextureBoundaries = new THREE.TextureLoader().load(
+    "assets/textures/stone1/stone.jpg"
+  );
   stoneTextureBoundaries.wrapS = THREE.RepeatWrapping;
   stoneTextureBoundaries.wrapT = THREE.RepeatWrapping;
   stoneTextureBoundaries.repeat.set(ROOM_WIDTH, ROOM_HEIGHT);
 
-  const stoneTextureBump = new THREE.TextureLoader().load("assets/textures/stone1/stone_bump.jpg");
+  const stoneTextureBump = new THREE.TextureLoader().load(
+    "assets/textures/stone1/stone_bump.jpg"
+  );
   stoneTextureBump.wrapS = THREE.RepeatWrapping;
   stoneTextureBump.wrapT = THREE.RepeatWrapping;
   stoneTextureBump.repeat.set(ROOM_WIDTH, ROOM_HEIGHT);
-  
 
   const grassTexture = new THREE.TextureLoader().load(
     "assets/textures/grass/grass_base.jpg"
@@ -88,7 +118,7 @@ function loadLevel1THREE(scene) {
     aoMap: grassTextureAO,
     aoMapIntensity: 1,
     shininess: 10000,
-  })
+  });
 
   // Floor
   const floorGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH);
@@ -131,8 +161,12 @@ function loadLevel1THREE(scene) {
   //**********************************************************/
   //    Load level elements - platforms and all obstacles
   //**********************************************************/
-  const stoneTexturePlatforms = new THREE.TextureLoader().load("assets/textures/stone1/stone.jpg");
-  const stoneBumpMap = new THREE.TextureLoader().load("assets/textures/stone1/stone-bump.jpg");
+  const stoneTexturePlatforms = new THREE.TextureLoader().load(
+    "assets/textures/stone1/stone.jpg"
+  );
+  const stoneBumpMap = new THREE.TextureLoader().load(
+    "assets/textures/stone1/stone-bump.jpg"
+  );
   stoneTexturePlatforms.wrapS = THREE.RepeatWrapping;
   stoneTexturePlatforms.wrapT = THREE.RepeatWrapping;
   stoneTexturePlatforms.repeat.set(ROOM_WIDTH, 5); // Repeat 4 times horizontally, 2 times vertically
@@ -140,42 +174,65 @@ function loadLevel1THREE(scene) {
     map: stoneTexturePlatforms,
     bumpMap: stoneBumpMap,
     bumpScale: 0.3,
-  }); 
+  });
 
-  const PLATFORM_DEPTH = 10;
-  const firstPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 5, PLATFORM_DEPTH);
-  const firstPlatformMesh = new THREE.Mesh(firstPlatformGeometry, stoneTextureMat);
-  firstPlatformMesh.position.set(0, 2.5, (ROOM_DEPTH / 2) - PLATFORM_DEPTH / 2);
+  const firstPlatformGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    5,
+    PLATFORM_DEPTH
+  );
+  const firstPlatformMesh = new THREE.Mesh(
+    firstPlatformGeometry,
+    stoneTextureMat
+  );
+  firstPlatformMesh.position.set(0, 2.5, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2);
   scene.add(firstPlatformMesh);
 
-  const secondPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 5, PLATFORM_DEPTH);
-  const secondPlatformMesh = new THREE.Mesh(secondPlatformGeometry, stoneTextureMat);
-  secondPlatformMesh.position.set(0, 2.5, (ROOM_DEPTH / 2) - 25);
+  const secondPlatformGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    5,
+    PLATFORM_DEPTH
+  );
+  const secondPlatformMesh = new THREE.Mesh(
+    secondPlatformGeometry,
+    stoneTextureMat
+  );
+  secondPlatformMesh.position.set(0, 2.5, ROOM_DEPTH / 2 - 25);
   scene.add(secondPlatformMesh);
 
-  const thirdPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 20, PLATFORM_DEPTH);
-  const thirdPlatformMesh = new THREE.Mesh(thirdPlatformGeometry, stoneTextureMat);
-  thirdPlatformMesh.position.set(0, 5, (ROOM_DEPTH / 2) - 45);
+  const thirdPlatformGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    20,
+    PLATFORM_DEPTH
+  );
+  const thirdPlatformMesh = new THREE.Mesh(
+    thirdPlatformGeometry,
+    stoneTextureMat
+  );
+  thirdPlatformMesh.position.set(0, 5, ROOM_DEPTH / 2 - 45);
   scene.add(thirdPlatformMesh);
 
   /**
    * The little platforms in the middle of level 1
    */
-  const smallPlatTexture = new THREE.TextureLoader().load("assets/textures/stone2/stone_base.jpg");
+  const smallPlatTexture = new THREE.TextureLoader().load(
+    "assets/textures/stone2/stone_base.jpg"
+  );
   smallPlatTexture.wrapS = THREE.RepeatWrapping;
   smallPlatTexture.wrapT = THREE.RepeatWrapping;
-  smallPlatTexture.repeat.set(2,2);
+  smallPlatTexture.repeat.set(2, 2);
 
-
-  const smallPlatAO = new THREE.TextureLoader().load("assets/textures/stone2/stone_ao.jpg");
+  const smallPlatAO = new THREE.TextureLoader().load(
+    "assets/textures/stone2/stone_ao.jpg"
+  );
   smallPlatAO.wrapS = THREE.RepeatWrapping;
   smallPlatAO.wrapT = THREE.RepeatWrapping;
 
-
-  const smallPlatBump = new THREE.TextureLoader().load("assets/textures/stone2/stone_height.png");
+  const smallPlatBump = new THREE.TextureLoader().load(
+    "assets/textures/stone2/stone_height.png"
+  );
   smallPlatBump.wrapS = THREE.RepeatWrapping;
   smallPlatBump.wrapT = THREE.RepeatWrapping;
-
 
   const smallPlatMat = new THREE.MeshPhongMaterial({
     map: smallPlatTexture,
@@ -183,57 +240,111 @@ function loadLevel1THREE(scene) {
     aoMap: smallPlatAO,
     aoMapIntensity: 0.1,
     bumpScale: 10,
-  })
+  });
 
   const smallPlat1Geometry = new THREE.BoxGeometry(6, 2, 6);
   const smallPlat1Mesh = new THREE.Mesh(smallPlat1Geometry, smallPlatMat);
-  smallPlat1Mesh.position.set(10, 25, (ROOM_DEPTH / 2) - 60);
+  smallPlat1Mesh.position.set(10, 25, ROOM_DEPTH / 2 - 60);
   scene.add(smallPlat1Mesh);
 
   const smallPlat2Geometry = new THREE.BoxGeometry(6, 2, 6);
   const smallPlat2Mesh = new THREE.Mesh(smallPlat2Geometry, smallPlatMat);
-  smallPlat2Mesh.position.set(-10, 30, (ROOM_DEPTH / 2) - 65);
+  smallPlat2Mesh.position.set(-10, 30, ROOM_DEPTH / 2 - 65);
   scene.add(smallPlat2Mesh);
 
   const smallPlat3Geometry = new THREE.BoxGeometry(3, 1, 3);
   const smallPlat3Mesh = new THREE.Mesh(smallPlat3Geometry, smallPlatMat);
-  smallPlat3Mesh.position.set(0, 40, (ROOM_DEPTH / 2) - 70);
+  smallPlat3Mesh.position.set(0, 40, ROOM_DEPTH / 2 - 70);
   scene.add(smallPlat3Mesh);
- 
+
   // end of little platforms
 
-  const fourthPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 50, PLATFORM_DEPTH);
-  const fourthPlatformMesh = new THREE.Mesh(fourthPlatformGeometry, stoneTextureMat);
-  fourthPlatformMesh.position.set(0, 25, (ROOM_DEPTH / 2) - 90);
+  const fourthPlatformGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    50,
+    PLATFORM_DEPTH
+  );
+  const fourthPlatformMesh = new THREE.Mesh(
+    fourthPlatformGeometry,
+    stoneTextureMat
+  );
+  fourthPlatformMesh.position.set(0, 25, ROOM_DEPTH / 2 - 90);
   scene.add(fourthPlatformMesh);
 
   // hole in the wall thing
-  const topWallHoleGeometry = new THREE.BoxGeometry(ROOM_WIDTH, (ROOM_HEIGHT / 2) - HOLE_SPACE, 1);
+  const topWallHoleGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    ROOM_HEIGHT / 2 - HOLE_SPACE,
+    1
+  );
   const topWallHoleMesh = new THREE.Mesh(topWallHoleGeometry, stoneTextureMat);
   // the height is set by adding to the center of the room's height, which is (ROOM_HEIGHT / 2),
   // the offset of this wall, which is (ROOM_HEIGHT / 4) + HOLE_SPACE / 2
-  topWallHoleMesh.position.set(0, (ROOM_HEIGHT / 2) + (ROOM_HEIGHT / 4) + HOLE_SPACE / 2, (ROOM_DEPTH / 2) - 110);
+  topWallHoleMesh.position.set(
+    0,
+    ROOM_HEIGHT / 2 + ROOM_HEIGHT / 4 + HOLE_SPACE / 2,
+    ROOM_DEPTH / 2 - 110
+  );
   scene.add(topWallHoleMesh);
 
-  const bottomWallHoleGeometry = new THREE.BoxGeometry(ROOM_WIDTH, (ROOM_HEIGHT / 2) - HOLE_SPACE, 1);
-  const bottomWallHoleMesh = new THREE.Mesh(bottomWallHoleGeometry, stoneTextureMat);
-  bottomWallHoleMesh.position.set(0, (ROOM_HEIGHT / 2) - (ROOM_HEIGHT / 4) - HOLE_SPACE / 2, (ROOM_DEPTH / 2) - 110);
+  const bottomWallHoleGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    ROOM_HEIGHT / 2 - HOLE_SPACE,
+    1
+  );
+  const bottomWallHoleMesh = new THREE.Mesh(
+    bottomWallHoleGeometry,
+    stoneTextureMat
+  );
+  bottomWallHoleMesh.position.set(
+    0,
+    ROOM_HEIGHT / 2 - ROOM_HEIGHT / 4 - HOLE_SPACE / 2,
+    ROOM_DEPTH / 2 - 110
+  );
   scene.add(bottomWallHoleMesh);
 
-  const leftWallHoleGeometry = new THREE.BoxGeometry(ROOM_WIDTH / 2 - HOLE_SPACE, ROOM_HEIGHT, 0.99);
-  const leftWallHoleMesh = new THREE.Mesh(leftWallHoleGeometry, stoneTextureMat);
-  leftWallHoleMesh.position.set(- ROOM_WIDTH / 2 + (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110);
+  const leftWallHoleGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH / 2 - HOLE_SPACE,
+    ROOM_HEIGHT,
+    0.99
+  );
+  const leftWallHoleMesh = new THREE.Mesh(
+    leftWallHoleGeometry,
+    stoneTextureMat
+  );
+  leftWallHoleMesh.position.set(
+    -ROOM_WIDTH / 2 + (ROOM_WIDTH / 2 - HOLE_SPACE) / 2,
+    ROOM_HEIGHT / 2,
+    ROOM_DEPTH / 2 - 110
+  );
   scene.add(leftWallHoleMesh);
 
-  const rightWallHoleGeometry = new THREE.BoxGeometry(ROOM_WIDTH / 2 - HOLE_SPACE, ROOM_HEIGHT, 0.99);
-  const rightWallHoleMesh = new THREE.Mesh(rightWallHoleGeometry, stoneTextureMat);
-  rightWallHoleMesh.position.set(ROOM_WIDTH / 2 - (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110);
+  const rightWallHoleGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH / 2 - HOLE_SPACE,
+    ROOM_HEIGHT,
+    0.99
+  );
+  const rightWallHoleMesh = new THREE.Mesh(
+    rightWallHoleGeometry,
+    stoneTextureMat
+  );
+  rightWallHoleMesh.position.set(
+    ROOM_WIDTH / 2 - (ROOM_WIDTH / 2 - HOLE_SPACE) / 2,
+    ROOM_HEIGHT / 2,
+    ROOM_DEPTH / 2 - 110
+  );
   scene.add(rightWallHoleMesh);
 
-
-  const lastPlatformGeometry = new THREE.BoxGeometry(ROOM_WIDTH, 10, PLATFORM_DEPTH);
-  const lastPlatformMesh = new THREE.Mesh(lastPlatformGeometry, stoneTextureMat);
-  lastPlatformMesh.position.set(0, 5, - ROOM_DEPTH / 2 + PLATFORM_DEPTH / 2);
+  const lastPlatformGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    10,
+    PLATFORM_DEPTH
+  );
+  const lastPlatformMesh = new THREE.Mesh(
+    lastPlatformGeometry,
+    stoneTextureMat
+  );
+  lastPlatformMesh.position.set(0, 5, -ROOM_DEPTH / 2 + PLATFORM_DEPTH / 2);
   scene.add(lastPlatformMesh);
 
   loadTeleportToLevel2_THREE(scene);
@@ -245,159 +356,213 @@ function loadLevel1CANNON(world, playerBody) {
   //    Load world boundaries - static collision planes for walls and floor
   //*************************************************************************/
   const physicsMaterial = new CANNON.Material({
-      friction: 0.9,
-      restitution: 0,
-    }); 
-    
-    
+    friction: 0.9,
+    restitution: 0,
+  });
+
   // Create the ground plane
-  const groundShape = new CANNON.Plane();
   const groundBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
-  groundBody.addShape(groundShape);
-  groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+  groundBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1, ROOM_DEPTH / 2))
+  );
+  groundBody.position.y = -1;
   world.addBody(groundBody);
 
   groundBody.addEventListener("collide", (event) => {
     // floor collided with player, teleport him to start of level
-    if (event.contact.bj == playerBody) {
+    if (event.contact.bi == playerBody) {
       playerBody.velocity.set(0, 0, 0);
-      playerBody.position.set(0, 6, (ROOM_DEPTH/2) - 2)
+      playerBody.position.set(0, 6, ROOM_DEPTH / 2 - 2);
     }
-  })
+  });
 
   // Right wall physics
-  const rightWallShape = new CANNON.Plane();
   const rightWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
-  rightWallBody.addShape(rightWallShape);
-  rightWallBody.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+  rightWallBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1, ROOM_DEPTH / 2))
+  );
+  rightWallBody.position.set(1, ROOM_HEIGHT / 2, 0);
   rightWallBody.quaternion.setFromAxisAngle(
-    new CANNON.Vec3(0, 1, 0),
+    new CANNON.Vec3(0, 0, 1),
     -Math.PI / 2
   );
+  rightWallBody.position.x = ROOM_WIDTH / 2 + 1;
   world.addBody(rightWallBody);
 
   // Left wall physics
-  const leftWallShape = new CANNON.Plane();
   const leftWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
-  leftWallBody.addShape(leftWallShape);
-  leftWallBody.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
-  leftWallBody.quaternion.setFromAxisAngle(
-    new CANNON.Vec3(0, 1, 0),
-    Math.PI / 2
+  leftWallBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1, ROOM_DEPTH / 2))
   );
+  leftWallBody.position.set(1, ROOM_HEIGHT / 2, 0);
+  leftWallBody.quaternion.setFromAxisAngle(
+    new CANNON.Vec3(0, 0, 1),
+    -Math.PI / 2
+  );
+  leftWallBody.position.x = -ROOM_WIDTH / 2 - 1;
   world.addBody(leftWallBody);
 
   // Front wall physics
-  const frontWallShape = new CANNON.Plane();
   const frontWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
-  frontWallBody.addShape(frontWallShape);
-  frontWallBody.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
+  frontWallBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 1))
+  );
+  frontWallBody.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2 - 1);
   world.addBody(frontWallBody);
 
-  // Back wall physics
-  const backWallShape = new CANNON.Plane();
+  // Front wall physics
   const backWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
-  backWallBody.addShape(backWallShape);
-  backWallBody.position.set(0, ROOM_HEIGHT / 2, ROOM_DEPTH / 2);
-  backWallBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), Math.PI);
+  backWallBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 1))
+  );
+  backWallBody.position.set(0, ROOM_HEIGHT / 2, ROOM_DEPTH / 2 + 1);
   world.addBody(backWallBody);
-
 
   //*************************************************************************/
   //    Load world platforms and platforms - 3d bodies with collision
   //*************************************************************************/
-  const firstPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  firstPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 5, PLATFORM_DEPTH)));
-  firstPlatformBody.position.set(0, 0, (ROOM_DEPTH / 2))
+  const firstPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  firstPlatformBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 5, PLATFORM_DEPTH / 2))
+  );
+  firstPlatformBody.position.set(0, 0, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2);
   world.addBody(firstPlatformBody);
 
-  const secondPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  secondPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 5, PLATFORM_DEPTH / 2)));
-  secondPlatformBody.position.set(0, 0, (ROOM_DEPTH / 2) - 25)
+  const secondPlatformBody = new CANNON.Body({
+    type: CANNON.BODY_TYPES.STATIC,
+  });
+  secondPlatformBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 5, PLATFORM_DEPTH / 2))
+  );
+  secondPlatformBody.position.set(0, 0, ROOM_DEPTH / 2 - 25);
   world.addBody(secondPlatformBody);
 
-  const thirdPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  thirdPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 10, PLATFORM_DEPTH / 2)));
-  thirdPlatformBody.position.set(0, 5, (ROOM_DEPTH / 2) - 45)
+  const thirdPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  thirdPlatformBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 10, PLATFORM_DEPTH / 2))
+  );
+  thirdPlatformBody.position.set(0, 5, ROOM_DEPTH / 2 - 45);
   world.addBody(thirdPlatformBody);
 
   /**
    * The little platforms in the middle of level 1
    */
-  const smallPlat1Body = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  const smallPlat1Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
   smallPlat1Body.addShape(new CANNON.Box(new CANNON.Vec3(3, 1, 3)));
-  smallPlat1Body.position.set(10, 25, (ROOM_DEPTH / 2) - 60);
+  smallPlat1Body.position.set(10, 25, ROOM_DEPTH / 2 - 60);
   world.addBody(smallPlat1Body);
 
-  const smallPlat2Body = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  const smallPlat2Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
   smallPlat2Body.addShape(new CANNON.Box(new CANNON.Vec3(3, 1, 3)));
-  smallPlat2Body.position.set(-10, 30, (ROOM_DEPTH / 2) - 65);
+  smallPlat2Body.position.set(-10, 30, ROOM_DEPTH / 2 - 65);
   world.addBody(smallPlat2Body);
 
-  const smallPlat3Body = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
+  const smallPlat3Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
   smallPlat3Body.addShape(new CANNON.Box(new CANNON.Vec3(1.5, 0.5, 1.5)));
-  smallPlat3Body.position.set(0, 40, (ROOM_DEPTH / 2) - 70);
+  smallPlat3Body.position.set(0, 40, ROOM_DEPTH / 2 - 70);
   world.addBody(smallPlat3Body);
 
   // end of little platforms
 
-  const fourthPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  fourthPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH, 25, PLATFORM_DEPTH / 2)));
-  fourthPlatformBody.position.set(0, 25, (ROOM_DEPTH / 2) - 90)
+  const fourthPlatformBody = new CANNON.Body({
+    type: CANNON.BODY_TYPES.STATIC,
+  });
+  fourthPlatformBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 25, PLATFORM_DEPTH / 2))
+  );
+  fourthPlatformBody.position.set(0, 25, ROOM_DEPTH / 2 - 90);
   world.addBody(fourthPlatformBody);
 
-
   // hole in the wall thing
-  const topWallHoleBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  topWallHoleBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, ((ROOM_HEIGHT / 2) - HOLE_SPACE) / 2, 1 / 2)));
-  topWallHoleBody.position.set(0, (ROOM_HEIGHT / 2) + (ROOM_HEIGHT / 4) + HOLE_SPACE / 2, (ROOM_DEPTH / 2) - 110)
+  const topWallHoleBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  topWallHoleBody.addShape(
+    new CANNON.Box(
+      new CANNON.Vec3(ROOM_WIDTH / 2, (ROOM_HEIGHT / 2 - HOLE_SPACE) / 2, 1 / 2)
+    )
+  );
+  topWallHoleBody.position.set(
+    0,
+    ROOM_HEIGHT / 2 + ROOM_HEIGHT / 4 + HOLE_SPACE / 2,
+    ROOM_DEPTH / 2 - 110
+  );
   world.addBody(topWallHoleBody);
 
-  const bottomWallHoleBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  bottomWallHoleBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, ((ROOM_HEIGHT / 2) - HOLE_SPACE) / 2, 1 / 2)));
-  bottomWallHoleBody.position.set(0, (ROOM_HEIGHT / 2) - (ROOM_HEIGHT / 4) - HOLE_SPACE / 2, (ROOM_DEPTH / 2) - 110)
+  const bottomWallHoleBody = new CANNON.Body({
+    type: CANNON.BODY_TYPES.STATIC,
+  });
+  bottomWallHoleBody.addShape(
+    new CANNON.Box(
+      new CANNON.Vec3(ROOM_WIDTH / 2, (ROOM_HEIGHT / 2 - HOLE_SPACE) / 2, 1 / 2)
+    )
+  );
+  bottomWallHoleBody.position.set(
+    0,
+    ROOM_HEIGHT / 2 - ROOM_HEIGHT / 4 - HOLE_SPACE / 2,
+    ROOM_DEPTH / 2 - 110
+  );
   world.addBody(bottomWallHoleBody);
 
-  const leftWallHoleBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  leftWallHoleBody.addShape(new CANNON.Box(new CANNON.Vec3((ROOM_WIDTH / 2 - HOLE_SPACE) / 2, ROOM_HEIGHT / 2, 0.99 / 2)));
-  leftWallHoleBody.position.set(- ROOM_WIDTH / 2 + (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110)
+  const leftWallHoleBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  leftWallHoleBody.addShape(
+    new CANNON.Box(
+      new CANNON.Vec3(
+        (ROOM_WIDTH / 2 - HOLE_SPACE) / 2,
+        ROOM_HEIGHT / 2,
+        0.99 / 2
+      )
+    )
+  );
+  leftWallHoleBody.position.set(
+    -ROOM_WIDTH / 2 + (ROOM_WIDTH / 2 - HOLE_SPACE) / 2,
+    ROOM_HEIGHT / 2,
+    ROOM_DEPTH / 2 - 110
+  );
   world.addBody(leftWallHoleBody);
 
-  const rightWallHoleBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  rightWallHoleBody.addShape(new CANNON.Box(new CANNON.Vec3((ROOM_WIDTH / 2 - HOLE_SPACE) / 2, ROOM_HEIGHT / 2, 0.99 / 2)));
-  rightWallHoleBody.position.set(ROOM_WIDTH / 2 - (ROOM_WIDTH / 2 - HOLE_SPACE) / 2, (ROOM_HEIGHT / 2), (ROOM_DEPTH / 2) - 110)
+  const rightWallHoleBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  rightWallHoleBody.addShape(
+    new CANNON.Box(
+      new CANNON.Vec3(
+        (ROOM_WIDTH / 2 - HOLE_SPACE) / 2,
+        ROOM_HEIGHT / 2,
+        0.99 / 2
+      )
+    )
+  );
+  rightWallHoleBody.position.set(
+    ROOM_WIDTH / 2 - (ROOM_WIDTH / 2 - HOLE_SPACE) / 2,
+    ROOM_HEIGHT / 2,
+    ROOM_DEPTH / 2 - 110
+  );
   world.addBody(rightWallHoleBody);
 
   // when the player hits any of the walls, he gets teleported back
   const teleportBackToCheckpoint = () => {
     playerBody.velocity.set(0, 0, 0);
-    playerBody.position.set(0, 50 + PLAYER_HEIGHT, (ROOM_DEPTH / 2) - 90)
-  }
+    playerBody.position.set(0, 50 + PLAYER_HEIGHT, ROOM_DEPTH / 2 - 90);
+  };
 
-  leftWallHoleBody.addEventListener('collide', (event) => {
-    if (event.contact.bi == playerBody)
-      teleportBackToCheckpoint();
-  })
+  leftWallHoleBody.addEventListener("collide", (event) => {
+    if (event.contact.bi == playerBody) teleportBackToCheckpoint();
+  });
 
-  rightWallHoleBody.addEventListener('collide', (event) => {
-    if (event.contact.bi == playerBody)
-      teleportBackToCheckpoint();
-  })
+  rightWallHoleBody.addEventListener("collide", (event) => {
+    if (event.contact.bi == playerBody) teleportBackToCheckpoint();
+  });
 
-  topWallHoleBody.addEventListener('collide', (event) => {
-    if (event.contact.bi == playerBody)
-      teleportBackToCheckpoint();
-  })
+  topWallHoleBody.addEventListener("collide", (event) => {
+    if (event.contact.bi == playerBody) teleportBackToCheckpoint();
+  });
 
-  bottomWallHoleBody.addEventListener('collide', (event) => {
-    if (event.contact.bi == playerBody)
-      teleportBackToCheckpoint();
-  })
+  bottomWallHoleBody.addEventListener("collide", (event) => {
+    if (event.contact.bi == playerBody) teleportBackToCheckpoint();
+  });
 
-
-  const lastPlatformBody = new CANNON.Body({type: CANNON.BODY_TYPES.STATIC})
-  lastPlatformBody.addShape(new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 5, PLATFORM_DEPTH / 2)));
-  lastPlatformBody.position.set(0, 5, - ROOM_DEPTH / 2 + PLATFORM_DEPTH / 2)
+  const lastPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  lastPlatformBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 5, PLATFORM_DEPTH / 2))
+  );
+  lastPlatformBody.position.set(0, 5, -ROOM_DEPTH / 2 + PLATFORM_DEPTH / 2);
   world.addBody(lastPlatformBody);
 }
 

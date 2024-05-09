@@ -7,6 +7,7 @@ import { PointerLockControlsCannon } from "./PointerLockControllsCannon.js";
 import { DRACOLoader, GLTFLoader } from "three/addons/Addons.js";
 import { loadLevel1 } from './js/level1.js'
 import { loadRocketHandler } from "./js/rocket_missile.js";
+import { loadLevel2 } from "./js/level2.js";
 
 
 // CONSTANTS
@@ -39,6 +40,7 @@ initCannonDebugger(); // comment out when not debugging physics
 initPointerLock();
 loadRocketHandler(scene, world, camera, playerBody, controls);
 loadLevel1(scene, world, playerBody);
+loadLevel2(scene, world, playerBody);
 
 animate();
 
@@ -101,38 +103,6 @@ function initThree() {
 
   scene.add(axisHelper);
 
-  // create skybox
-  const skyboxGeo = new THREE.BoxGeometry(10000, 10000, 10000);
-  const materialArray = [
-    new THREE.MeshBasicMaterial({
-      map: new THREE.TextureLoader().load("assets/skybox/front.jpg"),
-      side: THREE.DoubleSide,
-    }),
-    new THREE.MeshBasicMaterial({
-      map: new THREE.TextureLoader().load("assets/skybox/back.jpg"),
-      side: THREE.DoubleSide,
-    }),
-    new THREE.MeshBasicMaterial({
-      map: new THREE.TextureLoader().load("assets/skybox/up.jpg"),
-      side: THREE.DoubleSide,
-    }),
-    new THREE.MeshBasicMaterial({
-      map: new THREE.TextureLoader().load("assets/skybox/down.jpg"),
-      side: THREE.DoubleSide,
-    }),
-    new THREE.MeshBasicMaterial({
-      map: new THREE.TextureLoader().load("assets/skybox/right.jpg"),
-      side: THREE.DoubleSide,
-    }),
-    new THREE.MeshBasicMaterial({
-      map: new THREE.TextureLoader().load("assets/skybox/left.jpg"),
-      side: THREE.DoubleSide,
-    }),
-  ];
-
-  const skybox = new THREE.Mesh(skyboxGeo, materialArray);
-  scene.add(skybox);
-
   // PLAYER
   playerMesh = new THREE.Object3D();
   scene.add(playerMesh);
@@ -142,12 +112,10 @@ function initThree() {
   dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
   loader.setDRACOLoader( dracoLoader );
 
-  // Load a glTF resource
+  // Load rocket launcher
   loader.load(
-    // resource URL
     'assets/models/rocket_launcher/scene.gltf',
-    // called when the resource is loaded
-    function ( gltf ) {
+    function (gltf) {
 
       gltf.scene.scale.set(0.1, 0.1, 0.1);
       gltf.scene.position.add(new THREE.Vector3(0, 0.45, 0));
