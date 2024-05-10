@@ -27,6 +27,7 @@ const timeStep = 1 / 60;
 let playerShape;
 let playerBody;
 let playerMesh;
+let rocketModel;
 
 
 
@@ -119,6 +120,7 @@ function initThree() {
 
       gltf.scene.scale.set(0.1, 0.1, 0.1);
       gltf.scene.position.add(new THREE.Vector3(0, 0.45, 0));
+      rocketModel = gltf.scene;
       playerMesh.add(gltf.scene);
 
       gltf.animations; // Array<THREE.AnimationClip>
@@ -184,7 +186,7 @@ function initCannon() {
   playerBody = new CANNON.Body({ mass: 5, material: playerMat });
   playerBody.addShape(playerShape);
   //playerBody.position.set(0, 6, (150/2) - 2); // level 1 starting position
-  playerBody.position.set(200, 51, -20);
+  playerBody.position.set(200, 80, 20);
   playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
@@ -220,6 +222,8 @@ function initPointerLock() {
   });
 }
 
+let cameraWorldDirection = new THREE.Vector3();
+
 function animate() {
   requestAnimationFrame(animate);
 
@@ -232,8 +236,11 @@ function animate() {
 
     // Update player's model position
     playerMesh.position.copy(playerBody.position);
-    //playerMesh.quaternion.copy(camera.quaternion);
+    camera.getWorldDirection(cameraWorldDirection);
     playerMesh.quaternion.copy(playerBody.quaternion);
+    // rotate on X axis to point the camera direction kind of (cameraWorldDirection.y is a 
+    // value from [-1, 1] and I turn it into the range [-PI/3, 2PI/3])
+    rocketModel.rotation.x = (cameraWorldDirection.y + 1) * Math.PI / 2 - (Math.PI / 3);
   }
 
   controls.update(dt);
