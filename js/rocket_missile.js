@@ -92,6 +92,7 @@ function loadRocketMissile() {
                     node.receiveShadow = true;
                 }
             });
+            gltf.scene.rotation.x = - Math.PI / 2
             gltf.scene.scale.multiplyScalar(0.1);
             rocketMissileModel = gltf.scene.clone();
         }
@@ -107,10 +108,6 @@ function shootRocket(scene, world, camera, playerBody) {
     // don't shoot rocket if interval between rockets hasn't passed
     if (performance.now() - lastRocketTime < ROCKET_INTERVAL) return;
 
-    const worldDirection = new THREE.Vector3();
-    camera.getWorldDirection(worldDirection);
-    console.log("worldDirection, ", worldDirection)
-    
     // CREATE ROCKET IN PHYSICS WORLD + THREE.JS WORLD
     const rocketBody = new CANNON.Body({
       mass: 1,
@@ -141,9 +138,6 @@ function shootRocket(scene, world, camera, playerBody) {
         shootDirection.y * ROCKET_VELOCITY,
         shootDirection.z * ROCKET_VELOCITY
     );
-    const cameraDirection = new THREE.Vector3();
-    camera.getWorldDirection(cameraDirection)
-    
     // Move the rocket outside of the player box model
     const x =
       playerBody.position.x +
@@ -158,13 +152,10 @@ function shootRocket(scene, world, camera, playerBody) {
       shootDirection.z * (PLAYER_DEPTH * 1.5 + rocketShape.radius);
   
     rocketBody.position.set(x, y, z);
-    const meshWorldDirection = new THREE.Vector3();
-    const cameraWorldDirection = new THREE.Vector3();
-    rocketMesh.getWorldDirection(meshWorldDirection);
-    camera.getWorldDirection(cameraWorldDirection);
-    console.log("rocketMEsh direction: ", meshWorldDirection);
     rocketMesh.position.copy(rocketBody.position);
-    rocketMesh.setFromUnitVectors(meshWorldDirection, cameraWorldDirection);
+    
+    
+    
     world.addBody(rocketBody);
     scene.add(rocketMesh);
   

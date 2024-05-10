@@ -17,6 +17,15 @@ const ROOM_WIDTH = 100;
 const ROOM_HEIGHT = 100;
 const ROOM_DEPTH = 250;
 const PLATFORM_DEPTH = 10;
+
+const LITTLE_PLATFORM_WIDTH = 3;
+const LITTLE_PLATFORM_HEIGHT = 1;
+const LITTLE_PLATFORM_DEPTH = 3;
+
+const littlePlatformMeshes = [];
+const littlePlatformBodies = [];
+
+
 import * as THREE from "three";
 import * as CANNON from "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm";
 
@@ -36,7 +45,7 @@ function loadLevel2THREE(scene) {
   //**************************************************************************************/
   const skyboxGeo = new THREE.BoxGeometry(
     ROOM_WIDTH * 2,
-    ROOM_HEIGHT * 2,
+    ROOM_HEIGHT * 4,
     ROOM_DEPTH * 2
   );
   const materialArray = [
@@ -203,6 +212,74 @@ function loadLevel2THREE(scene) {
   secondPlatformMesh.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - 60);
   scene.add(secondPlatformMesh);
 
+  //**********************************************************/
+  //    Little moving platforms textures and models
+  //**********************************************************/
+  const littlePlatformTextureBase = new THREE.TextureLoader().load(
+    "assets/textures/stone3/wall_stone_base.jpg"
+  );
+  littlePlatformTextureBase.wrapS = THREE.RepeatWrapping;
+  littlePlatformTextureBase.wrapT = THREE.RepeatWrapping;
+  //littlePlatformTextureBase.repeat.set(LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT);
+
+  const littlePlatformTextureAO = new THREE.TextureLoader().load(
+    "assets/textures/stone3/wall_stone_ao.jpg"
+  );
+  littlePlatformTextureAO.wrapS = THREE.RepeatWrapping;
+  littlePlatformTextureAO.wrapT = THREE.RepeatWrapping;
+  //littlePlatformTextureAO.repeat.set(LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT);
+
+  const littlePlatformTextureBump = new THREE.TextureLoader().load(
+    "assets/textures/stone3/wall_stone_normal.jpg"
+  );
+  littlePlatformTextureBump.wrapS = THREE.RepeatWrapping;
+  littlePlatformTextureBump.wrapT = THREE.RepeatWrapping;
+  //littlePlatformTextureBump.repeat.set(LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT);
+
+  const littlePlatformTexture = new THREE.MeshLambertMaterial({
+    map: littlePlatformTextureBase,
+    aoMap: littlePlatformTextureAO,
+    bumpMap: littlePlatformTextureBump,
+    bumpScale: 1,
+  })
+
+
+  const littlePlatform1Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
+  const littlePlatform1Mesh = new THREE.Mesh(littlePlatform1Geometry, littlePlatformTexture);
+  littlePlatform1Mesh.position.set(X_OFFSET - 20, 10, ROOM_DEPTH / 2 - 75)
+  scene.add(littlePlatform1Mesh);
+
+  const littlePlatform2Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
+  const littlePlatform2Mesh = new THREE.Mesh(littlePlatform2Geometry, littlePlatformTexture);
+  littlePlatform2Mesh.position.set(X_OFFSET, 20, ROOM_DEPTH / 2 - 80)
+  scene.add(littlePlatform2Mesh);
+
+  const littlePlatform3Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
+  const littlePlatform3Mesh = new THREE.Mesh(littlePlatform3Geometry, littlePlatformTexture);
+  littlePlatform3Mesh.position.set(X_OFFSET - 20, 30, ROOM_DEPTH / 2 - 85)
+  scene.add(littlePlatform3Mesh);
+
+  const littlePlatform4Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
+  const littlePlatform4Mesh = new THREE.Mesh(littlePlatform4Geometry, littlePlatformTexture);
+  littlePlatform4Mesh.position.set(X_OFFSET, 40, ROOM_DEPTH / 2 - 90)
+  scene.add(littlePlatform4Mesh);
+
+  const littlePlatform5Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
+  const littlePlatform5Mesh = new THREE.Mesh(littlePlatform5Geometry, littlePlatformTexture);
+  littlePlatform5Mesh.position.set(X_OFFSET - 10, 50, ROOM_DEPTH / 2 - 95)
+  scene.add(littlePlatform5Mesh);
+
+  const littlePlatform6Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
+  const littlePlatform6Mesh = new THREE.Mesh(littlePlatform6Geometry, littlePlatformTexture);
+  littlePlatform6Mesh.position.set(X_OFFSET, 60, ROOM_DEPTH / 2 - 100)
+  scene.add(littlePlatform6Mesh);
+
+  // save platforms with uneven number, they will be set to moving (check loadLevel2CANNON little platforms section)
+  littlePlatformMeshes.push(littlePlatform1Mesh, littlePlatform3Mesh, littlePlatform5Mesh);
+
+  // little platforms end
+
+  
   const thirdPlatformGeometry = new THREE.BoxGeometry(
     ROOM_WIDTH,
     70,
@@ -215,6 +292,10 @@ function loadLevel2THREE(scene) {
   thirdPlatformMesh.position.set(X_OFFSET, 35, ROOM_DEPTH / 2 - 110);
   scene.add(thirdPlatformMesh);
 
+  //**********************************************************/
+  //    Jump where you have to synchronize 2 rockets
+  //**********************************************************/
+  
 }
 
 function loadLevel2CANNON(world, playerBody) {
@@ -301,4 +382,99 @@ function loadLevel2CANNON(world, playerBody) {
   );
   secondPlatformBody.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - 60);
   world.addBody(secondPlatformBody);
+
+  //**********************************************************/
+  //    Little moving platforms textures and models
+  //**********************************************************/
+  const littlePlatform1Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  littlePlatform1Body.addShape(
+    new CANNON.Box(new CANNON.Vec3(LITTLE_PLATFORM_WIDTH / 2, LITTLE_PLATFORM_HEIGHT / 2 , LITTLE_PLATFORM_DEPTH / 2))
+  );
+  littlePlatform1Body.position.set(X_OFFSET - 20, 10, ROOM_DEPTH / 2 - 75);
+  world.addBody(littlePlatform1Body);
+
+  const littlePlatform2Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  littlePlatform2Body.addShape(
+    new CANNON.Box(new CANNON.Vec3(LITTLE_PLATFORM_WIDTH / 2, LITTLE_PLATFORM_HEIGHT / 2 , LITTLE_PLATFORM_DEPTH / 2))
+  );
+  littlePlatform2Body.position.set(X_OFFSET, 20, ROOM_DEPTH / 2 - 80);
+  world.addBody(littlePlatform2Body);
+
+  const littlePlatform3Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  littlePlatform3Body.addShape(
+    new CANNON.Box(new CANNON.Vec3(LITTLE_PLATFORM_WIDTH / 2, LITTLE_PLATFORM_HEIGHT / 2 , LITTLE_PLATFORM_DEPTH / 2))
+  );
+  littlePlatform3Body.position.set(X_OFFSET - 20, 30, ROOM_DEPTH / 2 - 85);
+  world.addBody(littlePlatform3Body);
+
+  const littlePlatform4Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  littlePlatform4Body.addShape(
+    new CANNON.Box(new CANNON.Vec3(LITTLE_PLATFORM_WIDTH / 2, LITTLE_PLATFORM_HEIGHT / 2 , LITTLE_PLATFORM_DEPTH / 2))
+  );
+  littlePlatform4Body.position.set(X_OFFSET, 40, ROOM_DEPTH / 2 - 90);
+  world.addBody(littlePlatform4Body);
+
+  const littlePlatform5Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  littlePlatform5Body.addShape(
+    new CANNON.Box(new CANNON.Vec3(LITTLE_PLATFORM_WIDTH / 2, LITTLE_PLATFORM_HEIGHT / 2 , LITTLE_PLATFORM_DEPTH / 2))
+  );
+  littlePlatform5Body.position.set(X_OFFSET - 10, 50, ROOM_DEPTH / 2 - 95);
+  world.addBody(littlePlatform5Body);
+
+  const littlePlatform6Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  littlePlatform6Body.addShape(
+    new CANNON.Box(new CANNON.Vec3(LITTLE_PLATFORM_WIDTH / 2, LITTLE_PLATFORM_HEIGHT / 2 , LITTLE_PLATFORM_DEPTH / 2))
+  );
+  littlePlatform6Body.position.set(X_OFFSET, 60, ROOM_DEPTH / 2 - 100);
+  world.addBody(littlePlatform6Body);
+
+  littlePlatformBodies.push(littlePlatform1Body, littlePlatform3Body, littlePlatform5Body);
+
+  // Make moving platforms
+  const moveInPositiveAxis = [true, false, true, false, true, false];
+  let velocityX;
+  const littlePlatformVelocity = 0.05; // meters per frame
+  world.addEventListener('postStep', () => {
+    for (let i = 0; i < littlePlatformBodies.length; i++) {
+      // switch direction when platform body is atleast 30 meters away from the room center
+      if (Math.abs(X_OFFSET - littlePlatformBodies[i].position.x) > 20)
+        moveInPositiveAxis[i] = !moveInPositiveAxis[i];
+      // move based on the direction saved in array
+      velocityX = moveInPositiveAxis[i] === true ? littlePlatformVelocity : -littlePlatformVelocity;
+      littlePlatformBodies[i].position.x = littlePlatformBodies[i].position.x + velocityX;
+      littlePlatformMeshes[i].position.copy(littlePlatformBodies[i].position);
+    }
+  })
+  
+   // little platforms end
+
+  const thirdPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  thirdPlatformBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 70/2, PLATFORM_DEPTH / 2))
+  );
+  thirdPlatformBody.position.set(X_OFFSET, 35, ROOM_DEPTH / 2 - 110);
+  world.addBody(thirdPlatformBody);
+
+  //**********************************************************/
+  //    Jump where you have to synchronize 2 rockets
+  //**********************************************************/
+  const syncJumpFloorMaterial = new CANNON.Material({
+    friction: 1,
+    restitution: 0.0,
+  });
+  const syncJumpFloorBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  syncJumpFloorBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1, PLATFORM_DEPTH / 2))
+  );
+  syncJumpFloorBody.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - 110 - (PLATFORM_DEPTH));
+  syncJumpFloorBody.material = syncJumpFloorMaterial;
+  world.addBody(syncJumpFloorBody);
+
+
+  const syncEndFloorBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  syncEndFloorBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1, PLATFORM_DEPTH / 2))
+  );
+  syncEndFloorBody.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - 200);
+  world.addBody(syncEndFloorBody);
 }
