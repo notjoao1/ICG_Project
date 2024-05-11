@@ -12,10 +12,12 @@ const ROCKET_STRENGTH_MULT = 110;   // strength multiplier of the rocket
 
 let rocketMissileModel = null;
 let shooting = false;
-let rocketToRemoveId = null; // TODO: fix because of the queue issue
+let rocketToRemoveId = null; // the CANNON.Body ID of it
 const rocketBodyMap = new Map(); // ID -> {mesh_id, rocketBody} (associates rocket_body with mesh and keeps body)
 const rocketMeshesMap = new Map();  // ID -> rocketMesh (map between rocket mesh ID and its instance)
 let lastRocketTime = 0;
+let audioShoot;
+let audioExplode;
 
 
 /**
@@ -29,6 +31,7 @@ let lastRocketTime = 0;
 export function loadRocketHandler(scene, world, camera, playerBody, controls) {
     // load the GLTF model once - it will be reused multiple times
     loadRocketMissile(scene);
+    loadAudioContext();
     
     // make it possible to shoot continuously while holding down mouse left click
     window.addEventListener("mousedown", (event) => {
@@ -154,11 +157,13 @@ function shootRocket(scene, world, camera, playerBody) {
     rocketBody.position.set(x, y, z);
     rocketMesh.position.copy(rocketBody.position);
     
-    
-    
     world.addBody(rocketBody);
     scene.add(rocketMesh);
-  
+
+    // stop audio and restart if it's already playing (just like what Team Fortress 2 does)
+    if (audioShoot.isPlaying) audioShoot.stop();
+    audioShoot.play();
+
     lastRocketTime = performance.now();
 }
 
@@ -178,12 +183,7 @@ function collisionHandler(event, playerBody) {
         CANNON.Body.COLLIDE_EVENT_NAME,
         collisionHandler
     );
-    console.log("Rocket blew up")
 
-    // TODO: can only remove 1 rocket per frame, if 2 rockets blow up on same frame,
-    // one of them will be dangling, maybe use a queue and remove all rockets in that queue
-    // each frame
-    // schedule rocket for removal on new frame
     rocketToRemoveId = event.contact.bi.id;
 
     const directionalVectorForForce =
@@ -205,6 +205,9 @@ function collisionHandler(event, playerBody) {
     );
     // applies impulse in playerBody center
     playerBody.applyImpulse(impulse, new CANNON.Vec3(0, 0, 0));
+
+    if (audioExplode.isPlaying) audioExplode.stop();
+    audioExplode.play();
 };
 
 // Returns a vector pointing to the diretion the camera is pointing to
@@ -235,3 +238,20 @@ function getCollisionPoint(rocketPos, worldContactPoint) {
     return rocketPos.vadd(worldContactPoint);
 };
 
+function loadAudioContext() {
+    const audioLoader = new THREE.AudioLoader();
+    const listener = new THREE.AudioListener();
+    audioShoot = new THREE.Audio(listener);
+    audioLoader.load('assets/audio/shoot_rocket.wav', function(buffer) {
+        audioShoot.setBuffer(buffer);
+        audioShoot.setVolume(0.1);
+        audioShoot.setLoop(false);
+    });
+    audioExplode = new THREE.Audio(listener);
+    audioLoader.load('assets/audio/explode_rocket.wav', function(buffer) {
+        audioExplode.setBuffer(buffer);
+        audioExplode.setVolume(0.05);
+        audioExplode.setLoop(false);
+    })
+
+}
