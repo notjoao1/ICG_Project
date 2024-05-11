@@ -10,7 +10,7 @@ const ROCKET_VELOCITY = 28;  // velocity at which the rocket moves
 const ROCKET_STRENGTH_MULT = 110;   // strength multiplier of the rocket
 
 
-let rocketMissileModel = null;
+let rocketMissileMaterial = new THREE.MeshLambertMaterial({ color: new THREE.Color('rgb(75, 83, 32)')})
 let shooting = false;
 let rocketToRemoveId = null; // the CANNON.Body ID of it
 const rocketBodyMap = new Map(); // ID -> {mesh_id, rocketBody} (associates rocket_body with mesh and keeps body)
@@ -29,8 +29,6 @@ let audioExplode;
  *          can't shoot rockets while the game is paused.
  */
 export function loadRocketHandler(scene, world, camera, playerBody, controls) {
-    // load the GLTF model once - it will be reused multiple times
-    loadRocketMissile(scene);
     loadAudioContext();
     
     // make it possible to shoot continuously while holding down mouse left click
@@ -79,34 +77,10 @@ export function loadRocketHandler(scene, world, camera, playerBody, controls) {
     })
 }
 
-function loadRocketMissile() {
-    const loader = new GLTFLoader();
-
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
-    loader.setDRACOLoader( dracoLoader );
-
-    loader.load(
-        "assets/models/rocket_missile/scene.gltf",
-        function ( gltf ) {
-            gltf.scene.traverse(function(node) {
-                if (node.isMesh) {
-                    node.castShadow = true; 
-                    node.receiveShadow = true;
-                }
-            });
-            gltf.scene.rotation.x = - Math.PI / 2
-            gltf.scene.scale.multiplyScalar(0.1);
-            rocketMissileModel = gltf.scene.clone();
-        }
-    )
-}
-
 function shootRocket(scene, world, camera, playerBody) {
     // rockets
     const rocketShape = new CANNON.Sphere(0.2);
     const rocketGeometry = new THREE.SphereGeometry(rocketShape.radius, 32, 32);
-  
     
     // don't shoot rocket if interval between rockets hasn't passed
     if (performance.now() - lastRocketTime < ROCKET_INTERVAL) return;
@@ -128,11 +102,13 @@ function shootRocket(scene, world, camera, playerBody) {
     rocketMesh.castShadow = true;
     rocketMesh.receiveShadow = true; */
   
-    const rocketMesh = rocketMissileModel.clone()
+    const rocketMesh = new THREE.Mesh(rocketGeometry, rocketMissileMaterial)
     rocketBodyMap.set(rocketBody.id, {
         mesh_id: rocketMesh.id,
         body: rocketBody,
     });
+    rocketMesh.castShadow = true;
+    rocketMesh.receiveShadow = true;
     rocketMeshesMap.set(rocketMesh.id, rocketMesh);
     
     const shootDirection = getShootDirection(camera, playerBody);

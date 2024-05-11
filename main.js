@@ -232,8 +232,8 @@ function animate() {
   // only go to next frame if the game is not paused
   if (controls.enabled) {
     world.step(timeStep, dt);
-    cannonDebugger.update();
-
+    /* cannonDebugger.update();
+ */
     // Update player's model position
     playerMesh.position.copy(playerBody.position);
     camera.getWorldDirection(cameraWorldDirection);
