@@ -8,6 +8,7 @@ import { DRACOLoader, GLTFLoader } from "three/addons/Addons.js";
 import { loadLevel1 } from './js/level1.js'
 import { loadRocketHandler } from "./js/rocket_missile.js";
 import { loadLevel2 } from "./js/level2.js";
+import * as constants from "./js/constants.js";
 
 
 // CONSTANTS

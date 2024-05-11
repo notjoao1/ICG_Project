@@ -77,7 +77,7 @@ function loadLevel1THREE(scene) {
   stoneTextureBoundaries.repeat.set(ROOM_WIDTH, ROOM_HEIGHT);
 
   const stoneTextureBump = new THREE.TextureLoader().load(
-    "assets/textures/stone1/stone_bump.jpg"
+    "assets/textures/stone1/stone-bump.jpg"
   );
   stoneTextureBump.wrapS = THREE.RepeatWrapping;
   stoneTextureBump.wrapT = THREE.RepeatWrapping;
