@@ -1,17 +1,20 @@
-import { LEVEL1_ROOM_DEPTH, LEVEL1_ROOM_WIDTH } from "./constants";
+import { LEVEL1_ROOM_WIDTH } from "./constants";
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
 
 /*
-  This file contains all source code for the first level of the game.
-  It's a simple level to teach the player basic game mechanics.
+  This file contains all source code for the second level of the game.
+  It has new mechanics for the player to explore.
 
-  First level has the following jumps:
-  1. simple jump from one platform to another (simply shoot a rocket)
-  2. simple height jump (press SPACEBAR + shoot rocket)
-  3. jump between little platforms up to the end of the level
-  4. jump inside a small hole on the wall, and if you touch the wall you go back
+  Second level has the following jumps:
+  1. pogo jump (similar to a pogo stick in real life)
+  2. moving platforms jump, requires precision
+  3. sync jump -> shoot a rocket and then shoot another one when that one explodes so you get the knockback of two rockets
+  4. shoot two buttons to open a door and jump to the end :)
 */
 
-// room dimensions
+// constants
 const X_OFFSET = LEVEL1_ROOM_WIDTH + 100;
 const ROOM_WIDTH = 100;
 const ROOM_HEIGHT = 100;
@@ -24,6 +27,20 @@ const LITTLE_PLATFORM_DEPTH = 3;
 
 const littlePlatformMeshes = [];
 const littlePlatformBodies = [];
+
+const BUTTON_BASE_WIDTH = 5;
+const BUTTON_BASE_HEIGHT = 1;
+const BUTTON_BASE_DEPTH = 5;
+
+const BUTTON_TURNOFF_TIME = 6;  // how long since a button is clicked to reset it to not being clicked
+const buttonClickedState = []; // keeps true/false values for whether the buttons have been clicked in the last X seconds
+const buttonClickedTimeState = []; // keeps time when each button was last clicked, in milliseconds
+const buttonLights = [];  // keeps references for the two lights above the buttons
+const buttonWallMeshes = []; // keeps references for the two walls in the button sectionds
+
+// keep color references so we don't create objects new color objects and waste memory
+const BUTTON_RED = new THREE.Color('rgb(200, 0, 0)')
+const BUTTON_GREEN = new THREE.Color('rgb(0, 200, 0)')
 
 
 import * as THREE from "three";
@@ -41,7 +58,7 @@ export function loadLevel2(scene, world, playerBody) {
 
 function loadLevel2THREE(scene) {
   //**************************************************************************************/
-  //    Load skybox - big cube with images inside of it. it wraps the whole first level
+  //    Load skybox - big cube with images inside of it. it wraps the whole level
   //**************************************************************************************/
   const skyboxGeo = new THREE.BoxGeometry(
     ROOM_WIDTH * 2,
@@ -147,13 +164,7 @@ function loadLevel2THREE(scene) {
   leftWall.castShadow = true;
   scene.add(leftWall);
 
-  // Front wall
-  const frontWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
-  const frontWall = new THREE.Mesh(frontWallGeometry, wallsMaterial);
-  frontWall.position.set(X_OFFSET, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
-  frontWall.receiveShadow = true;
-  frontWall.castShadow = true;
-  scene.add(frontWall);
+  loadLevel2GridWall(scene);
 
   // Back wall
   const backWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
@@ -295,7 +306,202 @@ function loadLevel2THREE(scene) {
   //**********************************************************/
   //    Jump where you have to synchronize 2 rockets
   //**********************************************************/
-  
+  const syncJumpFloorGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    2,
+    PLATFORM_DEPTH
+  );
+  const syncJumpFloorMesh = new THREE.Mesh(
+    syncJumpFloorGeometry,
+    lavaStoneTexturePlatform
+  );
+  syncJumpFloorMesh.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - 110 - PLATFORM_DEPTH);
+  scene.add(syncJumpFloorMesh);
+
+  const syncEndFloorGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    2,
+    PLATFORM_DEPTH
+  );
+  const syncEndFloorMesh = new THREE.Mesh(
+    syncEndFloorGeometry,
+    lavaStoneTexturePlatform
+  );
+  syncEndFloorMesh.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - 200);
+  scene.add(syncEndFloorMesh);
+
+  //**********************************************************/
+  //    Last jump -> shoot two buttons for walls to open
+  //**********************************************************/
+  loadButtonSectionTHREE(scene, wallsMaterial);
+}
+
+function loadLevel2GridWall(scene) {
+  const gridWidth = ROOM_WIDTH / 20;
+  const gridTextureBase = new THREE.TextureLoader().load(
+    "assets/textures/stone3/wall_stone_base.jpg"
+  );
+  gridTextureBase.wrapS = THREE.RepeatWrapping;
+  gridTextureBase.wrapT = THREE.RepeatWrapping;
+  gridTextureBase.repeat.set(gridWidth, ROOM_HEIGHT);
+
+  const gridTextureAO = new THREE.TextureLoader().load(
+    "assets/textures/stone3/wall_stone_ao.jpg"
+  );
+  gridTextureAO.wrapS = THREE.RepeatWrapping;
+  gridTextureAO.wrapT = THREE.RepeatWrapping;
+  gridTextureAO.repeat.set(gridWidth, ROOM_HEIGHT);
+
+  const gridTextureBump = new THREE.TextureLoader().load(
+    "assets/textures/stone3/wall_stone_normal.jpg"
+  );
+  gridTextureBump.wrapS = THREE.RepeatWrapping;
+  gridTextureBump.wrapT = THREE.RepeatWrapping;
+  gridTextureBump.repeat.set(gridWidth, ROOM_HEIGHT);
+
+  const gridMaterial = new THREE.MeshLambertMaterial({
+    map: gridTextureBase,
+    aoMap: gridTextureAO,
+    bumpMap: gridTextureBump,
+  })
+
+  // creates a grid/fence at the end of level 2
+  const gridGeometry = new THREE.PlaneGeometry(gridWidth, ROOM_HEIGHT);
+  for (let x_grid = 0; x_grid < ROOM_WIDTH; x_grid = x_grid + ROOM_WIDTH / 10) {
+    const gridPartMesh = new THREE.Mesh(gridGeometry, gridMaterial);
+    gridPartMesh.position.set(X_OFFSET - (ROOM_WIDTH / 2) + x_grid + (gridWidth / 2), ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
+    gridPartMesh.receiveShadow = true;
+    gridPartMesh.castShadow = true;
+    scene.add(gridPartMesh);
+  }
+}
+
+function loadButtonSectionTHREE(scene, materialForWalls) {
+  // helper text
+  const fontLoader = new FontLoader();
+
+  fontLoader.load( 'https://cdn.jsdelivr.net/gh/mrdoob/three.js/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+    const textSize = 2;  
+    const level2TextGeometry = new TextGeometry('SHOOT THE BUTTONS!', {
+      font: font,
+      size: textSize,
+      depth: 0.1,
+      curveSegments: 12,
+      bevelEnabled: false
+    });
+    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+    const textMesh = new THREE.Mesh(level2TextGeometry, material);
+    // text above the door (the X position is kind of set arbitrarily)
+    textMesh.position.set(X_OFFSET - textSize * 7, 20, ROOM_DEPTH / 2 - 215);
+    scene.add(textMesh);
+  });
+
+  // load the two walls that open when the buttons are shot
+  const buttonWall1Group = new THREE.Group();
+  const buttonWall1Geometry = new THREE.BoxGeometry(
+    ROOM_WIDTH / 2 - 1,
+    ROOM_HEIGHT,
+    2
+  );
+  const buttonWall1Mesh = new THREE.Mesh(
+    buttonWall1Geometry,
+    materialForWalls
+  );
+  buttonWall1Group.add(buttonWall1Mesh);
+  const buttonWallBeamMaterial = new THREE.MeshLambertMaterial({
+    color: new THREE.Color('rgb(100, 100, 100)')
+  })
+  const buttonWall1BeamGeometry = new THREE.BoxGeometry(
+    5,
+    ROOM_HEIGHT,
+    3
+  );
+  const buttonWall1BeamMesh = new THREE.Mesh(buttonWall1BeamGeometry, buttonWallBeamMaterial);
+  buttonWall1BeamMesh.position.x += ROOM_WIDTH / 4 - 1.75;
+  buttonWall1Group.add(buttonWall1BeamMesh);
+
+  buttonWall1Group.position.set(X_OFFSET - ROOM_WIDTH / 4 - 1, ROOM_HEIGHT / 2, ROOM_DEPTH / 2 - 220);
+  scene.add(buttonWall1Group);
+
+  // load the two walls that open when the buttons are shot
+  const buttonWall2Group = new THREE.Group();
+  const buttonWall2Geometry = new THREE.BoxGeometry(
+    ROOM_WIDTH / 2 - 1,
+    ROOM_HEIGHT,
+    2
+  );
+  const buttonWall2Mesh = new THREE.Mesh(
+    buttonWall2Geometry,
+    materialForWalls
+  );
+  buttonWall2Group.add(buttonWall2Mesh);
+  const buttonWall2BeamGeometry = new THREE.BoxGeometry(
+    5,
+    ROOM_HEIGHT,
+    3
+  );
+  const buttonWall2BeamMesh = new THREE.Mesh(buttonWall2BeamGeometry, buttonWallBeamMaterial);
+  buttonWall2BeamMesh.position.x -= ROOM_WIDTH / 4 - 1.75;
+  buttonWall2Group.add(buttonWall2BeamMesh);
+
+  buttonWall2Group.position.set(X_OFFSET + ROOM_WIDTH / 4 + 1, ROOM_HEIGHT / 2, ROOM_DEPTH / 2 - 220);
+  scene.add(buttonWall2Group);
+
+  buttonWallMeshes.push(buttonWall1Group);
+  buttonWallMeshes.push(buttonWall2Group);
+
+  const button1Position = new THREE.Vector3(X_OFFSET - (ROOM_WIDTH / 2), 20, ROOM_DEPTH / 2 - 210);
+  const button2Position = new THREE.Vector3(X_OFFSET + (ROOM_WIDTH / 2), 20, ROOM_DEPTH / 2 - 210);
+
+  // load point lights above the buttons
+  const pointLightButton1 = new THREE.PointLight( 0xff0000, 1000, 500 );
+  pointLightButton1.position.copy(button1Position);
+  pointLightButton1.position.y += 10;
+  scene.add(pointLightButton1); 
+
+  // load point lights above the buttons
+  const pointLightButton2 = new THREE.PointLight( 0xff0000, 1000, 500 );
+  pointLightButton2.position.copy(button2Position);
+  pointLightButton2.position.y += 10;
+  scene.add(pointLightButton2); 
+
+  buttonLights.push(pointLightButton1);
+  buttonLights.push(pointLightButton2);
+
+    
+  // load the two buttons, one on each wall (check X position) and with opposite rotations, so they seem "stuck on the walls"
+  loadButtonTHREEAtPosition(scene, button1Position, new THREE.Vector3(0, 0, -Math.PI / 2));
+  loadButtonTHREEAtPosition(scene, button2Position, new THREE.Vector3(0, 0, Math.PI / 2));
+}
+
+/**
+ * @param scene THREE.js scene to add meshes in.
+ * @param positionVector THREE.Vector3 representing the position of this button
+ * @param positionVector THREE.Vector3 representing the (euler) rotation of this button
+ */
+function loadButtonTHREEAtPosition(scene, positionVector, rotationVector) {
+  const buttonGroup = new THREE.Group();
+  const buttonBaseGeometry = new THREE.BoxGeometry(BUTTON_BASE_WIDTH, BUTTON_BASE_HEIGHT, BUTTON_BASE_DEPTH);
+  const buttonBaseMaterial = new THREE.MeshLambertMaterial({
+    color: new THREE.Color("rgb(150, 150, 150)"), // gray
+  })
+  const buttonBaseMesh = new THREE.Mesh(buttonBaseGeometry, buttonBaseMaterial);
+  buttonGroup.add(buttonBaseMesh);
+
+  const buttonClickGeometry = new THREE.BoxGeometry(BUTTON_BASE_WIDTH - 1, BUTTON_BASE_HEIGHT / 2, BUTTON_BASE_DEPTH - 1);
+  const buttonClickMaterial = new THREE.MeshLambertMaterial({
+    color: new THREE.Color("rgb(200, 0, 0)"), // slightly dark red
+  })
+  const buttonClickMesh = new THREE.Mesh(buttonClickGeometry, buttonClickMaterial);
+  buttonClickMesh.position.y += BUTTON_BASE_HEIGHT / 2;
+  buttonGroup.add(buttonClickMesh);
+
+  buttonGroup.position.copy(positionVector);
+  buttonGroup.rotateX(rotationVector.x);
+  buttonGroup.rotateY(rotationVector.y);
+  buttonGroup.rotateZ(rotationVector.z);
+  scene.add(buttonGroup);
 }
 
 function loadLevel2CANNON(world, playerBody) {
@@ -477,4 +683,97 @@ function loadLevel2CANNON(world, playerBody) {
   );
   syncEndFloorBody.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - 200);
   world.addBody(syncEndFloorBody);
+
+  //**********************************************************/
+  //    Last jump -> shoot two buttons for walls to open
+  //**********************************************************/
+  loadButtonSectionCANNON(world);
+}
+
+function loadButtonSectionCANNON(world) {
+  // load the two walls that open when the buttons are shot
+  const buttonWall1Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  buttonWall1Body.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 4, ROOM_HEIGHT / 2, 1))
+  );
+  buttonWall1Body.position.set(X_OFFSET - ROOM_WIDTH / 4, ROOM_HEIGHT / 2, ROOM_DEPTH / 2 - 220);
+  world.addBody(buttonWall1Body); 
+
+  const buttonWall2Body = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  buttonWall2Body.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 4, ROOM_HEIGHT / 2, 1))
+  );
+  buttonWall2Body.position.set(X_OFFSET + ROOM_WIDTH / 4, ROOM_HEIGHT / 2, ROOM_DEPTH / 2 - 220);
+  world.addBody(buttonWall2Body); 
+
+
+  // load the two buttons, one on each wall (check X position) and with opposite rotations, so they seem "stuck on the walls"
+  const button1Body = loadButtonCANNONAtPosition(world, new CANNON.Vec3(X_OFFSET - (ROOM_WIDTH / 2), 20, ROOM_DEPTH / 2 - 210), new CANNON.Vec3(0, 0, -Math.PI / 2));
+  const button2Body = loadButtonCANNONAtPosition(world, new CANNON.Vec3(X_OFFSET + (ROOM_WIDTH / 2), 20, ROOM_DEPTH / 2 - 210), new CANNON.Vec3(0, 0, Math.PI / 2));
+
+  button1Body.addEventListener('collide', (event) => {
+    buttonClickedState[0] = true;
+    buttonClickedTimeState[0] = performance.now();
+  })
+
+  button2Body.addEventListener('collide', (event) => {
+    buttonClickedState[1] = true;
+    buttonClickedTimeState[1] = performance.now();
+  })
+
+  const wallOpenSpeed = 1;
+  world.addEventListener('postStep', () => {
+    // check if buttons should be turned off (if the time since they were clicked if over BUTTON_TURNOFF_TIME)
+    buttonClickedTimeState.forEach((time, index) => {
+      if (performance.now() - time > BUTTON_TURNOFF_TIME * 1000)
+        buttonClickedState[index] = false;
+    });
+    // update light colors
+    buttonLights.forEach((light, index) => {
+      if (buttonClickedState[index] === true)
+        light.color = BUTTON_GREEN;
+      else 
+        light.color = BUTTON_RED;
+    });
+
+    // if walls should be opening
+    if (buttonClickedState.every((value) => value === true)) {
+      // if wall1 is not yet in it's limit open position, move it towards there
+      if (buttonWall1Body.position.x > X_OFFSET - ROOM_WIDTH / 2)
+        buttonWall1Body.position.x -= wallOpenSpeed;
+      // if wall2 is not yet in it's limit open position, move it towards there
+      if (buttonWall2Body.position.x < X_OFFSET + ROOM_WIDTH / 2)
+        buttonWall2Body.position.x += wallOpenSpeed;
+    } else {
+      // if wall1 is not yet back in the base position
+      if (buttonWall1Body.position.x !== X_OFFSET - ROOM_WIDTH / 4)
+        buttonWall1Body.position.x += wallOpenSpeed;
+      // if wall2 is not yet back in the base position
+      if (buttonWall2Body.position.x !== X_OFFSET + ROOM_WIDTH / 4)
+        buttonWall2Body.position.x -= wallOpenSpeed;
+    }
+    buttonWallMeshes[0].position.copy(buttonWall1Body.position);
+    buttonWallMeshes[1].position.copy(buttonWall2Body.position);
+  })
+}
+
+/**
+ * @param scene THREE.js scene to add meshes in.
+ * @param positionVector THREE.Vector3 representing the position of this button
+ * @param positionVector THREE.Vector3 representing the (euler) rotation of this button
+ */
+function loadButtonCANNONAtPosition(world, positionVector, rotationVector) {
+  // buttons are a box in the CANNON world to simplify things
+  const buttonBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  buttonBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(BUTTON_BASE_WIDTH / 2, BUTTON_BASE_HEIGHT / 2, BUTTON_BASE_DEPTH / 2))
+  );
+  buttonBody.position.copy(positionVector);
+  buttonBody.quaternion.setFromEuler(rotationVector.x, rotationVector.y, rotationVector.z, "XYZ");
+  world.addBody(buttonBody);
+
+  // register this button in the buttonClickedState array
+  buttonClickedState.push(false);
+
+  return buttonBody;
 }
