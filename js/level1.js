@@ -22,7 +22,7 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 
 import * as THREE from "three";
 import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm';
-import { PLAYER_HEIGHT, LEVEL1_ROOM_DEPTH as ROOM_DEPTH, LEVEL1_ROOM_HEIGHT as ROOM_HEIGHT, LEVEL1_ROOM_WIDTH as ROOM_WIDTH } from "./constants";
+import { PLAYER_HEIGHT, LEVEL1_ROOM_DEPTH as ROOM_DEPTH, LEVEL1_ROOM_HEIGHT as ROOM_HEIGHT, LEVEL1_ROOM_WIDTH as ROOM_WIDTH } from "./constants.js";
 
 /**
  * @param world CANNON-es world to add physics bodies to.
