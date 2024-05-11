@@ -131,6 +131,8 @@ function loadLevel1THREE(scene) {
   const rightWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
   rightWallGeometry.rotateY(-Math.PI / 2);
   const rightWall = new THREE.Mesh(rightWallGeometry, wallsMaterial);
+  rightWall.castShadow = true;
+  rightWall.receiveShadow = true;
   rightWall.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
   rightWall.receiveShadow = true;
   scene.add(rightWall);
@@ -139,6 +141,8 @@ function loadLevel1THREE(scene) {
   const leftWallGeometry = new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT);
   leftWallGeometry.rotateY(Math.PI / 2);
   const leftWall = new THREE.Mesh(leftWallGeometry, wallsMaterial);
+  leftWall.castShadow = true;
+  leftWall.receiveShadow = true;
   leftWall.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
   leftWall.receiveShadow = true;
   scene.add(leftWall);
@@ -146,6 +150,8 @@ function loadLevel1THREE(scene) {
   // Front wall
   const frontWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
   const frontWall = new THREE.Mesh(frontWallGeometry, wallsMaterial);
+  frontWall.castShadow = true;
+  frontWall.receiveShadow = true;
   frontWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
   frontWall.receiveShadow = true;
   scene.add(frontWall);
@@ -153,6 +159,8 @@ function loadLevel1THREE(scene) {
   // Back wall
   const backWallGeometry = new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT);
   const backWall = new THREE.Mesh(backWallGeometry, wallsMaterial);
+  backWall.castShadow = true;
+  backWall.receiveShadow = true;
   backWall.position.set(0, ROOM_HEIGHT / 2, ROOM_DEPTH / 2);
   backWall.rotation.y = Math.PI;
   backWall.receiveShadow = true;
@@ -185,6 +193,8 @@ function loadLevel1THREE(scene) {
     firstPlatformGeometry,
     stoneTextureMat
   );
+  firstPlatformMesh.castShadow = true;
+  firstPlatformMesh.receiveShadow = true;
   firstPlatformMesh.position.set(0, 2.5, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2);
   scene.add(firstPlatformMesh);
 
@@ -197,6 +207,8 @@ function loadLevel1THREE(scene) {
     secondPlatformGeometry,
     stoneTextureMat
   );
+  secondPlatformMesh.castShadow = true;
+  secondPlatformMesh.receiveShadow = true;
   secondPlatformMesh.position.set(0, 2.5, ROOM_DEPTH / 2 - 25);
   scene.add(secondPlatformMesh);
 
@@ -209,6 +221,8 @@ function loadLevel1THREE(scene) {
     thirdPlatformGeometry,
     stoneTextureMat
   );
+  thirdPlatformMesh.castShadow = true;
+  thirdPlatformMesh.receiveShadow = true;
   thirdPlatformMesh.position.set(0, 5, ROOM_DEPTH / 2 - 45);
   scene.add(thirdPlatformMesh);
 
@@ -245,15 +259,21 @@ function loadLevel1THREE(scene) {
   const smallPlat1Geometry = new THREE.BoxGeometry(6, 2, 6);
   const smallPlat1Mesh = new THREE.Mesh(smallPlat1Geometry, smallPlatMat);
   smallPlat1Mesh.position.set(10, 25, ROOM_DEPTH / 2 - 60);
+  smallPlat1Mesh.castShadow = true;
+  smallPlat1Mesh.receiveShadow = true;
   scene.add(smallPlat1Mesh);
 
   const smallPlat2Geometry = new THREE.BoxGeometry(6, 2, 6);
   const smallPlat2Mesh = new THREE.Mesh(smallPlat2Geometry, smallPlatMat);
+  smallPlat2Mesh.castShadow = true;
+  smallPlat2Mesh.receiveShadow = true;
   smallPlat2Mesh.position.set(-10, 30, ROOM_DEPTH / 2 - 65);
   scene.add(smallPlat2Mesh);
 
   const smallPlat3Geometry = new THREE.BoxGeometry(3, 1, 3);
   const smallPlat3Mesh = new THREE.Mesh(smallPlat3Geometry, smallPlatMat);
+  smallPlat3Mesh.castShadow = true;
+  smallPlat3Mesh.receiveShadow = true;
   smallPlat3Mesh.position.set(0, 40, ROOM_DEPTH / 2 - 70);
   scene.add(smallPlat3Mesh);
 
@@ -268,6 +288,8 @@ function loadLevel1THREE(scene) {
     fourthPlatformGeometry,
     stoneTextureMat
   );
+  fourthPlatformMesh.castShadow = true;
+  fourthPlatformMesh.receiveShadow = true;
   fourthPlatformMesh.position.set(0, 25, ROOM_DEPTH / 2 - 90);
   scene.add(fourthPlatformMesh);
 
@@ -278,6 +300,8 @@ function loadLevel1THREE(scene) {
     1
   );
   const topWallHoleMesh = new THREE.Mesh(topWallHoleGeometry, stoneTextureMat);
+  topWallHoleMesh.castShadow = true;
+  topWallHoleMesh.receiveShadow = true;
   // the height is set by adding to the center of the room's height, which is (ROOM_HEIGHT / 2),
   // the offset of this wall, which is (ROOM_HEIGHT / 4) + HOLE_SPACE / 2
   topWallHoleMesh.position.set(
@@ -296,6 +320,8 @@ function loadLevel1THREE(scene) {
     bottomWallHoleGeometry,
     stoneTextureMat
   );
+  bottomWallHoleMesh.castShadow = true;
+  bottomWallHoleMesh.receiveShadow = true;
   bottomWallHoleMesh.position.set(
     0,
     ROOM_HEIGHT / 2 - ROOM_HEIGHT / 4 - HOLE_SPACE / 2,
@@ -312,6 +338,8 @@ function loadLevel1THREE(scene) {
     leftWallHoleGeometry,
     stoneTextureMat
   );
+  leftWallHoleMesh.castShadow = true;
+  leftWallHoleMesh.receiveShadow = true;
   leftWallHoleMesh.position.set(
     -ROOM_WIDTH / 2 + (ROOM_WIDTH / 2 - HOLE_SPACE) / 2,
     ROOM_HEIGHT / 2,
@@ -328,6 +356,8 @@ function loadLevel1THREE(scene) {
     rightWallHoleGeometry,
     stoneTextureMat
   );
+  rightWallHoleMesh.castShadow = true;
+  rightWallHoleMesh.receiveShadow = true;
   rightWallHoleMesh.position.set(
     ROOM_WIDTH / 2 - (ROOM_WIDTH / 2 - HOLE_SPACE) / 2,
     ROOM_HEIGHT / 2,
@@ -344,6 +374,8 @@ function loadLevel1THREE(scene) {
     lastPlatformGeometry,
     stoneTextureMat
   );
+  lastPlatformMesh.castShadow = true;
+  lastPlatformMesh.receiveShadow = true;
   lastPlatformMesh.position.set(0, 5, -ROOM_DEPTH / 2 + PLATFORM_DEPTH / 2);
   scene.add(lastPlatformMesh);
 
@@ -607,8 +639,8 @@ function loadTeleportToLevel2_CANNON(world, playerBody) {
   doorBody.position.set(0, 10 + (DOOR_HEIGHT / 2), - (ROOM_DEPTH / 2) + DOOR_DEPTH / 2);
   doorBody.addEventListener('collide', (event) => {
     if (event.contact.bi == playerBody) {
-      playerBody.position.set(ROOM_WIDTH + 100, 6, - ROOM_DEPTH / 2);
       playerBody.velocity.set(0, 0, 0);
+      playerBody.position.set(ROOM_WIDTH + 100, 2, 120);
     }
   })
   world.addBody(doorBody);

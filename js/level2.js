@@ -43,6 +43,9 @@ const buttonWallMeshes = []; // keeps references for the two walls in the button
 const BUTTON_RED = new THREE.Color('rgb(200, 0, 0)')
 const BUTTON_GREEN = new THREE.Color('rgb(0, 200, 0)')
 
+// default checkpoint is the start
+const CHECKPOINT_LEVEL2 = new CANNON.Vec3(X_OFFSET, 2, ROOM_DEPTH / 2 - 2);
+
 
 import * as THREE from "three";
 import * as CANNON from "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm";
@@ -144,7 +147,6 @@ function loadLevel2THREE(scene) {
   floorGeometry.rotateX(-Math.PI / 2);
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.position.x = X_OFFSET;
-  floor.receiveShadow = true;
   scene.add(floor);
 
   // Right wall
@@ -202,26 +204,30 @@ function loadLevel2THREE(scene) {
 
   const firstPlatformGeometry = new THREE.BoxGeometry(
     ROOM_WIDTH,
-    1.5,
+    1,
     PLATFORM_DEPTH
   );
   const firstPlatformMesh = new THREE.Mesh(
     firstPlatformGeometry,
     lavaStoneTexturePlatform
   );
-  firstPlatformMesh.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2);
+  firstPlatformMesh.receiveShadow = true;
+  firstPlatformMesh.castShadow = true;
+  firstPlatformMesh.position.set(X_OFFSET, 1/2, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2);
   scene.add(firstPlatformMesh);
 
   const secondPlatformGeometry = new THREE.BoxGeometry(
     ROOM_WIDTH,
-    1.5,
+    1,
     PLATFORM_DEPTH
   );
   const secondPlatformMesh = new THREE.Mesh(
     secondPlatformGeometry,
     lavaStoneTexturePlatform
   );
-  secondPlatformMesh.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - 60);
+  secondPlatformMesh.receiveShadow = true;
+  secondPlatformMesh.castShadow = true;
+  secondPlatformMesh.position.set(X_OFFSET, 1/2, ROOM_DEPTH / 2 - 60);
   scene.add(secondPlatformMesh);
 
   //**********************************************************/
@@ -258,31 +264,43 @@ function loadLevel2THREE(scene) {
 
   const littlePlatform1Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
   const littlePlatform1Mesh = new THREE.Mesh(littlePlatform1Geometry, littlePlatformTexture);
+  littlePlatform1Mesh.receiveShadow = true;
+  littlePlatform1Mesh.castShadow = true;
   littlePlatform1Mesh.position.set(X_OFFSET - 20, 10, ROOM_DEPTH / 2 - 75)
   scene.add(littlePlatform1Mesh);
 
   const littlePlatform2Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
   const littlePlatform2Mesh = new THREE.Mesh(littlePlatform2Geometry, littlePlatformTexture);
+  littlePlatform2Mesh.receiveShadow = true;
+  littlePlatform2Mesh.castShadow = true;
   littlePlatform2Mesh.position.set(X_OFFSET, 20, ROOM_DEPTH / 2 - 80)
   scene.add(littlePlatform2Mesh);
 
   const littlePlatform3Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
   const littlePlatform3Mesh = new THREE.Mesh(littlePlatform3Geometry, littlePlatformTexture);
+  littlePlatform3Mesh.receiveShadow = true;
+  littlePlatform3Mesh.castShadow = true;
   littlePlatform3Mesh.position.set(X_OFFSET - 20, 30, ROOM_DEPTH / 2 - 85)
   scene.add(littlePlatform3Mesh);
 
   const littlePlatform4Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
   const littlePlatform4Mesh = new THREE.Mesh(littlePlatform4Geometry, littlePlatformTexture);
+  littlePlatform4Mesh.receiveShadow = true;
+  littlePlatform4Mesh.castShadow = true;
   littlePlatform4Mesh.position.set(X_OFFSET, 40, ROOM_DEPTH / 2 - 90)
   scene.add(littlePlatform4Mesh);
 
   const littlePlatform5Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
   const littlePlatform5Mesh = new THREE.Mesh(littlePlatform5Geometry, littlePlatformTexture);
+  littlePlatform5Mesh.receiveShadow = true;
+  littlePlatform5Mesh.castShadow = true;
   littlePlatform5Mesh.position.set(X_OFFSET - 10, 50, ROOM_DEPTH / 2 - 95)
   scene.add(littlePlatform5Mesh);
 
   const littlePlatform6Geometry = new THREE.BoxGeometry( LITTLE_PLATFORM_WIDTH, LITTLE_PLATFORM_HEIGHT, LITTLE_PLATFORM_DEPTH ); 
   const littlePlatform6Mesh = new THREE.Mesh(littlePlatform6Geometry, littlePlatformTexture);
+  littlePlatform6Mesh.receiveShadow = true;
+  littlePlatform6Mesh.castShadow = true;
   littlePlatform6Mesh.position.set(X_OFFSET, 60, ROOM_DEPTH / 2 - 100)
   scene.add(littlePlatform6Mesh);
 
@@ -302,6 +320,8 @@ function loadLevel2THREE(scene) {
     lavaStoneTexturePlatform
   );
   thirdPlatformMesh.position.set(X_OFFSET, 35, ROOM_DEPTH / 2 - 110);
+  thirdPlatformMesh.receiveShadow = true;
+  thirdPlatformMesh.castShadow = true;
   scene.add(thirdPlatformMesh);
 
   //**********************************************************/
@@ -316,6 +336,8 @@ function loadLevel2THREE(scene) {
     syncJumpFloorGeometry,
     lavaStoneTexturePlatform
   );
+  syncJumpFloorMesh.castShadow = true;
+  syncJumpFloorMesh.receiveShadow = true;
   syncJumpFloorMesh.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - 110 - PLATFORM_DEPTH);
   scene.add(syncJumpFloorMesh);
 
@@ -328,6 +350,8 @@ function loadLevel2THREE(scene) {
     syncEndFloorGeometry,
     lavaStoneTexturePlatform
   );
+  syncEndFloorMesh.receiveShadow = true;
+  syncEndFloorMesh.castShadow = true;
   syncEndFloorMesh.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - 200);
   scene.add(syncEndFloorMesh);
 
@@ -346,6 +370,8 @@ function loadLevel2THREE(scene) {
     lastPlatformGeometry,
     lavaStoneTexturePlatform
   );
+  lastPlatformMesh.castShadow = true;
+  lastPlatformMesh.receiveShadow = true;
   lastPlatformMesh.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - ROOM_DEPTH + (PLATFORM_DEPTH));
   scene.add(lastPlatformMesh);
 
@@ -428,6 +454,8 @@ function loadButtonSectionTHREE(scene, materialForWalls) {
     const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
     const textMesh = new THREE.Mesh(level2TextGeometry, material);
+    textMesh.castShadow = true;
+    textMesh.receiveShadow = true;
     // text above the door (the X position is kind of set arbitrarily)
     textMesh.position.set(X_OFFSET - textSize * 7, 20, ROOM_DEPTH / 2 - 215);
     scene.add(textMesh);
@@ -444,6 +472,8 @@ function loadButtonSectionTHREE(scene, materialForWalls) {
     buttonWall1Geometry,
     materialForWalls
   );
+  buttonWall1Mesh.castShadow = true;
+  buttonWall1Mesh.receiveShadow = true;
   buttonWall1Group.add(buttonWall1Mesh);
   const buttonWallBeamMaterial = new THREE.MeshLambertMaterial({
     color: new THREE.Color('rgb(100, 100, 100)')
@@ -454,6 +484,8 @@ function loadButtonSectionTHREE(scene, materialForWalls) {
     3
   );
   const buttonWall1BeamMesh = new THREE.Mesh(buttonWall1BeamGeometry, buttonWallBeamMaterial);
+  buttonWall1BeamMesh.castShadow = true;
+  buttonWall1BeamMesh.receiveShadow = true;
   buttonWall1BeamMesh.position.x += ROOM_WIDTH / 4 - 1.75;
   buttonWall1Group.add(buttonWall1BeamMesh);
 
@@ -471,6 +503,8 @@ function loadButtonSectionTHREE(scene, materialForWalls) {
     buttonWall2Geometry,
     materialForWalls
   );
+  buttonWall2Mesh.castShadow = true;
+  buttonWall2Mesh.receiveShadow = true;
   buttonWall2Group.add(buttonWall2Mesh);
   const buttonWall2BeamGeometry = new THREE.BoxGeometry(
     5,
@@ -479,6 +513,8 @@ function loadButtonSectionTHREE(scene, materialForWalls) {
   );
   const buttonWall2BeamMesh = new THREE.Mesh(buttonWall2BeamGeometry, buttonWallBeamMaterial);
   buttonWall2BeamMesh.position.x -= ROOM_WIDTH / 4 - 1.75;
+  buttonWall2BeamMesh.castShadow = true;
+  buttonWall2BeamMesh.receiveShadow = true;
   buttonWall2Group.add(buttonWall2BeamMesh);
 
   buttonWall2Group.position.set(X_OFFSET + ROOM_WIDTH / 4 + 1, ROOM_HEIGHT / 2, ROOM_DEPTH / 2 - 220);
@@ -585,13 +621,13 @@ function loadLevel2CANNON(world, playerBody) {
   groundBody.position.x = X_OFFSET;
   world.addBody(groundBody);
 
-  /* groundBody.addEventListener("collide", (event) => {
+  groundBody.addEventListener("collide", (event) => {
     // floor collided with player, teleport him to start of level
     if (event.contact.bi == playerBody) {
       playerBody.velocity.set(0, 0, 0);
-      playerBody.position.set(X_OFFSET, 6, ROOM_DEPTH / 2 - 2);
+      playerBody.position.copy(CHECKPOINT_LEVEL2);
     }
-  }); */
+  });
 
   // Right wall physics
   const rightWallBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
@@ -640,16 +676,26 @@ function loadLevel2CANNON(world, playerBody) {
   //*************************************************************************/
   const firstPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
   firstPlatformBody.addShape(
-    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1.5/2, PLATFORM_DEPTH / 2))
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1/2, PLATFORM_DEPTH / 2))
   );
-  firstPlatformBody.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2);
+  const firstPlatformPosition = new CANNON.Vec3(X_OFFSET, 1/2, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2)
+  firstPlatformBody.addEventListener('collide', (event) => {
+    if (event.contact.bi == playerBody)
+      CHECKPOINT_LEVEL2.set(firstPlatformPosition.x, firstPlatformPosition.y * 2 + 2, firstPlatformPosition.z);
+  })
+  firstPlatformBody.position.copy(firstPlatformPosition);
   world.addBody(firstPlatformBody);
 
   const secondPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
   secondPlatformBody.addShape(
-    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1.5/2, PLATFORM_DEPTH / 2))
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1/2, PLATFORM_DEPTH / 2))
   );
-  secondPlatformBody.position.set(X_OFFSET, 1.5/2, ROOM_DEPTH / 2 - 60);
+  const secondPlatformPosition = new CANNON.Vec3(X_OFFSET, 1/2, ROOM_DEPTH / 2 - 60)
+  secondPlatformBody.addEventListener('collide', (event) => {
+    if (event.contact.bi == playerBody)
+      CHECKPOINT_LEVEL2.set(secondPlatformPosition.x, secondPlatformPosition.y * 2 + 2, secondPlatformPosition.z);
+  })
+  secondPlatformBody.position.copy(secondPlatformPosition);
   world.addBody(secondPlatformBody);
 
   //**********************************************************/
@@ -721,7 +767,12 @@ function loadLevel2CANNON(world, playerBody) {
   thirdPlatformBody.addShape(
     new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 70/2, PLATFORM_DEPTH / 2))
   );
-  thirdPlatformBody.position.set(X_OFFSET, 35, ROOM_DEPTH / 2 - 110);
+  const thirdPlatformPosition = new CANNON.Vec3(X_OFFSET, 35, ROOM_DEPTH / 2 - 110)
+  thirdPlatformBody.addEventListener('collide', (event) => {
+    if (event.contact.bi == playerBody)
+      CHECKPOINT_LEVEL2.set(thirdPlatformPosition.x, thirdPlatformPosition.y * 2 + 2, thirdPlatformPosition.z);
+  })
+  thirdPlatformBody.position.copy(thirdPlatformPosition);
   world.addBody(thirdPlatformBody);
 
   //**********************************************************/
@@ -744,7 +795,12 @@ function loadLevel2CANNON(world, playerBody) {
   syncEndFloorBody.addShape(
     new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 1, PLATFORM_DEPTH / 2))
   );
-  syncEndFloorBody.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - 200);
+  const syncEndFloorPosition = new CANNON.Vec3(X_OFFSET, 1, ROOM_DEPTH / 2 - 200)
+  syncEndFloorBody.addEventListener('collide', (event) => {
+    if (event.contact.bi == playerBody)
+      CHECKPOINT_LEVEL2.set(syncEndFloorPosition.x, syncEndFloorPosition.y * 2 + 2, syncEndFloorPosition.z);
+  })
+  syncEndFloorBody.position.copy(syncEndFloorPosition);
   world.addBody(syncEndFloorBody);
 
   //**********************************************************/

@@ -95,13 +95,6 @@ function shootRocket(scene, world, camera, playerBody) {
   
     rocketBody.addEventListener("collide", (event) => collisionHandler(event, playerBody));
   
-    /* // rocket in THREE world
-    const material = new THREE.MeshBasicMaterial({color: new THREE.Color(0xff0000)})
-    const rocketMesh = new THREE.Mesh(rocketGeometry, material);
-  
-    rocketMesh.castShadow = true;
-    rocketMesh.receiveShadow = true; */
-  
     const rocketMesh = new THREE.Mesh(rocketGeometry, rocketMissileMaterial)
     rocketBodyMap.set(rocketBody.id, {
         mesh_id: rocketMesh.id,
