@@ -10,7 +10,7 @@
 */
 
 // room dimensions
-const HOLE_SPACE = 4; // 6th jump hole space - the level with a small hole to pass through
+const HOLE_SPACE = 2; // 6th jump hole space - the level with a small hole to pass through
 const PLATFORM_DEPTH = 10;
 const DOOR_HEIGHT = 5;
 const DOOR_WIDTH = 2.5;
