@@ -4,6 +4,7 @@ import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/+esm';
 /**
  * @author mrdoob / http://mrdoob.com/
  * @author schteppe / https://github.com/schteppe
+ * @author João Dourado / https://github.com/notjoao1 - some changes from me for my ICG project
  */
 class PointerLockControlsCannon extends THREE.EventDispatcher {
   constructor(camera, cannonBody) {

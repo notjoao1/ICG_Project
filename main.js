@@ -221,8 +221,7 @@ function initCannon() {
   });
   playerBody = new CANNON.Body({ mass: 5, material: playerMat });
   playerBody.addShape(playerShape);
-  //playerBody.position.set(0, 15, -70); // level 1 starting position
-  playerBody.position.set(200, 10, 0);
+  playerBody.position.set(0, 15, -70); // level 1 starting position
   playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
