@@ -1,4 +1,4 @@
-import { LEVEL1_ROOM_WIDTH } from "./constants";
+import { LEVEL1_ROOM_WIDTH } from "./constants.js";
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { DRACOLoader, GLTFLoader } from "three/addons/Addons.js";
