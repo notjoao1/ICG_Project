@@ -1,6 +1,7 @@
 import { LEVEL1_ROOM_WIDTH } from "./constants";
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { DRACOLoader, GLTFLoader } from "three/addons/Addons.js";
 
 
 /*
@@ -334,6 +335,41 @@ function loadLevel2THREE(scene) {
   //    Last jump -> shoot two buttons for walls to open
   //**********************************************************/
   loadButtonSectionTHREE(scene, wallsMaterial);
+
+  // END SECTION
+  const lastPlatformGeometry = new THREE.BoxGeometry(
+    ROOM_WIDTH,
+    4,
+    PLATFORM_DEPTH * 2
+  );
+  const lastPlatformMesh = new THREE.Mesh(
+    lastPlatformGeometry,
+    lavaStoneTexturePlatform
+  );
+  lastPlatformMesh.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - ROOM_DEPTH + (PLATFORM_DEPTH));
+  scene.add(lastPlatformMesh);
+
+  // CONGRATULATIONS text
+  const fontLoader = new FontLoader();
+
+  fontLoader.load( 'https://cdn.jsdelivr.net/gh/mrdoob/three.js/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+    const textSize = 2;  
+    const level2TextGeometry = new TextGeometry('CONGRATULATIONS!\nYou finished the game!', {
+      font: font,
+      size: textSize,
+      depth: 0.1,
+      curveSegments: 12,
+      bevelEnabled: false
+    });
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+
+    const textMesh = new THREE.Mesh(level2TextGeometry, material);
+    // text above the door (the X position is kind of set arbitrarily)
+    textMesh.position.set(X_OFFSET - textSize * 7, 10, ROOM_DEPTH / 2 - ROOM_DEPTH);
+    scene.add(textMesh);
+  });
+
+  loadTrophyModelTHREE(scene);
 }
 
 function loadLevel2GridWall(scene) {
@@ -473,6 +509,33 @@ function loadButtonSectionTHREE(scene, materialForWalls) {
   // load the two buttons, one on each wall (check X position) and with opposite rotations, so they seem "stuck on the walls"
   loadButtonTHREEAtPosition(scene, button1Position, new THREE.Vector3(0, 0, -Math.PI / 2));
   loadButtonTHREEAtPosition(scene, button2Position, new THREE.Vector3(0, 0, Math.PI / 2));
+}
+
+function loadTrophyModelTHREE(scene) {
+  const loader = new GLTFLoader();
+
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath( '/examples/jsm/libs/draco/' );
+  loader.setDRACOLoader( dracoLoader );
+
+  let trophyModel;
+  loader.load(
+      "assets/models/trophy/scene.gltf",
+      function (gltf) {
+          gltf.scene.traverse(function(node) {
+              if (node.isMesh) {
+                  node.castShadow = true; 
+                  node.receiveShadow = true;
+              }
+          });
+          gltf.scene.scale.multiplyScalar(0.03);
+          gltf.scene.position.x = X_OFFSET;
+          gltf.scene.position.y = 4;
+          gltf.scene.position.z = ROOM_DEPTH / 2 - ROOM_DEPTH + 0.5; // +2 so it isnt inside the wall
+          trophyModel = gltf.scene;
+          scene.add(trophyModel);
+      }
+  )
 }
 
 /**
@@ -688,6 +751,14 @@ function loadLevel2CANNON(world, playerBody) {
   //    Last jump -> shoot two buttons for walls to open
   //**********************************************************/
   loadButtonSectionCANNON(world);
+
+  // END SECTION
+  const lastPlatformBody = new CANNON.Body({ type: CANNON.BODY_TYPES.STATIC });
+  lastPlatformBody.addShape(
+    new CANNON.Box(new CANNON.Vec3(ROOM_WIDTH / 2, 2, PLATFORM_DEPTH))
+  );
+  lastPlatformBody.position.set(X_OFFSET, 1, ROOM_DEPTH / 2 - ROOM_DEPTH + (PLATFORM_DEPTH));
+  world.addBody(lastPlatformBody);
 }
 
 function loadButtonSectionCANNON(world) {

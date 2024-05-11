@@ -1,0 +1,273 @@
+{
+  "accessors": [
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2370,
+      "max": [
+        3.457489490509033,
+        2.5903751850128174,
+        -1.7950778007507324
+      ],
+      "min": [
+        -5.012285232543945,
+        -2.5903751850128174,
+        -9.583394050598145
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 28440,
+      "componentType": 5126,
+      "count": 2370,
+      "max": [
+        0.9997731447219849,
+        1.0,
+        0.9952854514122009
+      ],
+      "min": [
+        -0.9997731447219849,
+        -1.0,
+        -0.9959776401519775
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 8904,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 56880,
+      "componentType": 5126,
+      "count": 120,
+      "max": [
+        2.0840351581573486,
+        2.0939111709594727,
+        0.20314566791057587
+      ],
+      "min": [
+        -2.1107382774353027,
+        -2.0939111709594727,
+        -2.1197760105133057
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 58320,
+      "componentType": 5126,
+      "count": 120,
+      "max": [
+        0.9952826499938965,
+        1.0,
+        0.9952827095985413
+      ],
+      "min": [
+        -0.9952826499938965,
+        -1.0,
+        -0.9952828288078308
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 35616,
+      "componentType": 5125,
+      "count": 180,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "JeremyW (https://sketchfab.com/JeremyW)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/trophy-2e32184ea51d4b50968beaf48aef0d2a",
+      "title": "Trophy"
+    },
+    "generator": "Sketchfab-12.68.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 36336,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 59760,
+      "byteOffset": 36336,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 96096,
+      "uri": "scene.bin"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "gold",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1.0,
+          0.6795426607,
+          0.0,
+          1.0
+        ],
+        "roughnessFactor": 0.4
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "grey",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.003513154052258166,
+          0.003513154052258166,
+          0.003513154052258166,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.4
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Object_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0
+          },
+          "indices": 2,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "Object_1",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 4,
+            "POSITION": 3
+          },
+          "indices": 5,
+          "material": 1,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "name": "root"
+    },
+    {
+      "children": [
+        3
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        1.0,
+        0.0,
+        0.0,
+        -1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "GLTF_SceneRootNode"
+    },
+    {
+      "children": [
+        4,
+        5
+      ],
+      "matrix": [
+        5.763379663764716,
+        -0.5618026406868308,
+        -6.094290316867607e-08,
+        0.0,
+        6.094288309520812e-08,
+        -2.963272157808252e-09,
+        5.790694713592529,
+        0.0,
+        -0.5618026406868308,
+        -5.7633796637647166,
+        2.9632731338557522e-09,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "trophy_0"
+    },
+    {
+      "mesh": 0,
+      "name": "Object_4"
+    },
+    {
+      "mesh": 1,
+      "name": "Object_5"
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ]
+}
