@@ -85,18 +85,53 @@ function initThree() {
   );
 
   scene.add(hemisphereLight);
+  
+  // simulates sun light
+  const directionalLightLevel1 = new THREE.DirectionalLight( 0xffffff, 1 );
+  directionalLightLevel1.position.set(0, 200, 0);
+  const directionalLightLevel1Target = new THREE.Object3D();
+  directionalLightLevel1Target.position.set(0, 0, 0);
+  scene.add(directionalLightLevel1Target);
+  directionalLightLevel1.target = directionalLightLevel1Target;
+  directionalLightLevel1.name = "directionalLightLevel1";
+  directionalLightLevel1.castShadow = true;
+  directionalLightLevel1.shadowMapWidth = directionalLightLevel1.shadowMapHeight = 1024 * 2;
+
+  // the camera for the directional light shadow is an orthographic camera
+  directionalLightLevel1.shadow.mapSize.width = 2000;
+  directionalLightLevel1.shadow.mapSize.height = 2000;
+  directionalLightLevel1.shadow.camera.near = 0.5;
+  directionalLightLevel1.shadow.camera.far = 300;
+  directionalLightLevel1.shadow.camera.left = -105;
+  directionalLightLevel1.shadow.camera.right = 105;
+  directionalLightLevel1.shadow.camera.top = 205;
+  directionalLightLevel1.shadow.camera.bottom = -205;
+
+  scene.add(directionalLightLevel1);
+
 
   // simulates sun light
-  const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-  directionalLight.position.set(20, 1000, -700 );
-  directionalLight.name = "directionalLight";
-  directionalLight.castShadow = true;
-  directionalLight.shadowMapWidth = directionalLight.shadowMapHeight = 1024*2;
+  const directionalLightLevel2 = new THREE.DirectionalLight( 0xffffff, 1 );
+  directionalLightLevel2.position.set(200, 200, 0 );
+  const directionalLightLevel2Target = new THREE.Object3D();
+  directionalLightLevel2Target.position.set(200, 0, 0);
+  scene.add(directionalLightLevel2Target);
+  directionalLightLevel2.target = directionalLightLevel2Target;
+  directionalLightLevel2.name = "directionalLightLevel2";
+  directionalLightLevel2.castShadow = true;
+  directionalLightLevel2.shadowMapWidth = directionalLightLevel2.shadowMapHeight = 1024 * 2;
 
-  scene.add( directionalLight );
+  // the camera for the directional light shadow is an orthographic camera
+  directionalLightLevel2.shadow.mapSize.width = 2000;
+  directionalLightLevel2.shadow.mapSize.height = 2000;
+  directionalLightLevel2.shadow.camera.near = 0.5;
+  directionalLightLevel2.shadow.camera.far = 300;
+  directionalLightLevel2.shadow.camera.left = -105;
+  directionalLightLevel2.shadow.camera.right = 105;
+  directionalLightLevel2.shadow.camera.top = 205;
+  directionalLightLevel2.shadow.camera.bottom = -205;
 
-  const helper = new THREE.DirectionalLightHelper( directionalLight, 5 );
-  scene.add( helper );
+  scene.add(directionalLightLevel2);
 
   // helper axis
   const axisHelper = new THREE.AxesHelper(5);
@@ -185,8 +220,8 @@ function initCannon() {
   });
   playerBody = new CANNON.Body({ mass: 5, material: playerMat });
   playerBody.addShape(playerShape);
-  //playerBody.position.set(0, 6, (150/2) - 2); // level 1 starting position
-  playerBody.position.set(200, 10, -120);
+  //playerBody.position.set(0, 15, -70); // level 1 starting position
+  playerBody.position.set(200, 10, 0);
   playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
@@ -240,6 +275,7 @@ function animate() {
     playerMesh.quaternion.copy(playerBody.quaternion);
     // rotate on X axis to point the camera direction kind of (cameraWorldDirection.y is a 
     // value from [-1, 1] and I turn it into the range [-PI/3, 2PI/3])
+    if (rocketModel) // wait for it to load
     rocketModel.rotation.x = (cameraWorldDirection.y + 1) * Math.PI / 2 - (Math.PI / 3);
   }
 
