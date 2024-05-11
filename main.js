@@ -134,11 +134,6 @@ function initThree() {
 
   scene.add(directionalLightLevel2);
 
-  // helper axis
-  const axisHelper = new THREE.AxesHelper(5);
-  axisHelper.position.set(0, 0.1, 0);
-
-  scene.add(axisHelper);
 
   // PLAYER
   playerMesh = new THREE.Object3D();

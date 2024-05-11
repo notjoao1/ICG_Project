@@ -439,7 +439,7 @@ function loadLevel2GridWall(scene) {
 }
 
 function loadButtonSectionTHREE(scene, materialForWalls) {
-  // helper text
+  // text to help the player if he doesnt know what to do
   const fontLoader = new FontLoader();
 
   fontLoader.load( 'https://cdn.jsdelivr.net/gh/mrdoob/three.js/examples/fonts/helvetiker_regular.typeface.json', function (font) {
