@@ -104,9 +104,9 @@ function initThree() {
 
   // simulates sun light
   const directionalLightLevel2 = new THREE.DirectionalLight( 0xffffff, 1 );
-  directionalLightLevel2.position.set(100, 200, 0 );
+  directionalLightLevel2.position.set(200, 200, 0 );
   const directionalLightLevel2Target = new THREE.Object3D();
-  directionalLightLevel2Target.position.set(200, 0, 0);
+  directionalLightLevel2Target.position.set(200, 0, 20);
   scene.add(directionalLightLevel2Target);
   directionalLightLevel2.target = directionalLightLevel2Target;
   directionalLightLevel2.name = "directionalLightLevel2";
@@ -207,7 +207,7 @@ function initCannon() {
   });
   playerBody = new CANNON.Body({ mass: 5, material: playerMat });
   playerBody.addShape(playerShape);
-  playerBody.position.set(0, 7, constants.LEVEL1_ROOM_DEPTH / 2 - 2); // level 1 starting position
+  playerBody.position.set(200, 7, constants.LEVEL1_ROOM_DEPTH / 2 - 2); // level 1 starting position
   playerBody.linearDamping = 0;
   playerBody.angularFactor = new CANNON.Vec3(0, 0, 0); // lock rotation on X and Z (only rotate on Y axis)
   world.addBody(playerBody);
@@ -253,10 +253,6 @@ function animate() {
   // only go to next frame if the game is not paused
   if (controls.enabled) {
     world.step(timeStep, dt);
-    if (constants.isPlayerInLevel2) {
-      directionalLightLevel2.isVisible = true;
-      directionalLightLevel1.isVisible = false;
-    }
     /* cannonDebugger.update(); */
     // Update player's model position
     playerMesh.position.copy(playerBody.position);
