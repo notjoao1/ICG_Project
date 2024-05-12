@@ -74,40 +74,40 @@ function loadLevel1THREE(scene) {
   );
   stoneTextureBoundaries.wrapS = THREE.RepeatWrapping;
   stoneTextureBoundaries.wrapT = THREE.RepeatWrapping;
-  stoneTextureBoundaries.repeat.set(ROOM_WIDTH, ROOM_HEIGHT);
+  stoneTextureBoundaries.repeat.set(ROOM_WIDTH / 8, ROOM_HEIGHT / 8);
 
   const stoneTextureBump = new THREE.TextureLoader().load(
     "assets/textures/stone1/stone-bump.jpg"
   );
   stoneTextureBump.wrapS = THREE.RepeatWrapping;
   stoneTextureBump.wrapT = THREE.RepeatWrapping;
-  stoneTextureBump.repeat.set(ROOM_WIDTH, ROOM_HEIGHT);
+  stoneTextureBump.repeat.set(ROOM_WIDTH / 8, ROOM_HEIGHT / 8);
 
   const grassTexture = new THREE.TextureLoader().load(
     "assets/textures/grass/grass_base.jpg"
   );
   grassTexture.wrapS = THREE.RepeatWrapping;
   grassTexture.wrapT = THREE.RepeatWrapping;
-  grassTexture.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+  grassTexture.repeat.set(ROOM_WIDTH / 8, ROOM_HEIGHT / 8);
 
   const grassTextureAO = new THREE.TextureLoader().load(
     "assets/textures/grass/grass_ao.jpg"
   );
   grassTextureAO.wrapS = THREE.RepeatWrapping;
   grassTextureAO.wrapT = THREE.RepeatWrapping;
-  grassTextureAO.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+  grassTextureAO.repeat.set(ROOM_WIDTH / 8, ROOM_HEIGHT / 8);
 
   const grassTextureBump = new THREE.TextureLoader().load(
     "assets/textures/grass/grass_height.png"
   );
   grassTextureBump.wrapS = THREE.RepeatWrapping;
   grassTextureBump.wrapT = THREE.RepeatWrapping;
-  grassTextureBump.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+  grassTextureBump.repeat.set(ROOM_WIDTH / 8, ROOM_HEIGHT / 8);
 
   const wallsMaterial = new THREE.MeshPhongMaterial({
     map: stoneTextureBoundaries,
     bumpMap: stoneTextureBump,
-    bumpScale: 2,
+    bumpScale: 0.1,
     shininess: 6000,
   });
 
@@ -177,7 +177,10 @@ function loadLevel1THREE(scene) {
   );
   stoneTexturePlatforms.wrapS = THREE.RepeatWrapping;
   stoneTexturePlatforms.wrapT = THREE.RepeatWrapping;
-  stoneTexturePlatforms.repeat.set(ROOM_WIDTH, 5);
+  stoneTexturePlatforms.repeat.set(ROOM_WIDTH / 2, 4);
+  stoneTextureBump.wrapS = THREE.RepeatWrapping;
+  stoneTextureBump.wrapT = THREE.RepeatWrapping;
+  stoneTextureBump.repeat.set(ROOM_WIDTH / 2, 4);
   const stoneTextureMat = new THREE.MeshPhongMaterial({
     map: stoneTexturePlatforms,
     bumpMap: stoneBumpMap,
@@ -293,13 +296,45 @@ function loadLevel1THREE(scene) {
   fourthPlatformMesh.position.set(0, 25, ROOM_DEPTH / 2 - 90);
   scene.add(fourthPlatformMesh);
 
+  // for the horizontal walls in the hole level
+  const horizontalWallsTextureBase = new THREE.TextureLoader().load(
+    "assets/textures/stone2/stone_base.jpg"
+  );
+  horizontalWallsTextureBase.wrapS = THREE.RepeatWrapping;
+  horizontalWallsTextureBase.wrapT = THREE.RepeatWrapping;
+  horizontalWallsTextureBase.repeat.set(ROOM_WIDTH / 10, ROOM_HEIGHT / 10 - HOLE_SPACE);
+
+  const horizontalWallsTextureAO = new THREE.TextureLoader().load(
+    "assets/textures/stone2/stone_ao.jpg"
+  );
+  horizontalWallsTextureAO.wrapS = THREE.RepeatWrapping;
+  horizontalWallsTextureAO.wrapT = THREE.RepeatWrapping;
+  horizontalWallsTextureAO.repeat.set(ROOM_WIDTH / 10, ROOM_HEIGHT / 10 - HOLE_SPACE);
+
+
+  const horizontalWallsTextureBump = new THREE.TextureLoader().load(
+    "assets/textures/stone2/stone_height.png"
+  );
+  horizontalWallsTextureBump.wrapS = THREE.RepeatWrapping;
+  horizontalWallsTextureBump.wrapT = THREE.RepeatWrapping;
+  horizontalWallsTextureBump.repeat.set(ROOM_WIDTH / 10, ROOM_HEIGHT / 10 - HOLE_SPACE);
+
+  const horizontalWallsMat = new THREE.MeshPhongMaterial({
+    shininess: 3000,
+    map: horizontalWallsTextureAO,
+    bumpMap: horizontalWallsTextureBump,
+    bumpScale: 0.05,
+    aoMap: horizontalWallsTextureAO,
+    aoMapIntensity: 0.1,
+  })
+
   // hole in the wall thing
   const topWallHoleGeometry = new THREE.BoxGeometry(
     ROOM_WIDTH,
     ROOM_HEIGHT / 2 - HOLE_SPACE,
     1
   );
-  const topWallHoleMesh = new THREE.Mesh(topWallHoleGeometry, stoneTextureMat);
+  const topWallHoleMesh = new THREE.Mesh(topWallHoleGeometry, horizontalWallsMat);
   topWallHoleMesh.castShadow = true;
   topWallHoleMesh.receiveShadow = true;
   // the height is set by adding to the center of the room's height, which is (ROOM_HEIGHT / 2),
@@ -318,7 +353,7 @@ function loadLevel1THREE(scene) {
   );
   const bottomWallHoleMesh = new THREE.Mesh(
     bottomWallHoleGeometry,
-    stoneTextureMat
+    horizontalWallsMat
   );
   bottomWallHoleMesh.castShadow = true;
   bottomWallHoleMesh.receiveShadow = true;
@@ -329,14 +364,47 @@ function loadLevel1THREE(scene) {
   );
   scene.add(bottomWallHoleMesh);
 
+
+  // for the vertical walls in the hole level
+  const verticalWallsTextureBase = new THREE.TextureLoader().load(
+    "assets/textures/stone2/stone_base.jpg"
+  );
+  verticalWallsTextureBase.wrapS = THREE.RepeatWrapping;
+  verticalWallsTextureBase.wrapT = THREE.RepeatWrapping;
+  verticalWallsTextureBase.repeat.set(ROOM_WIDTH / 10 - HOLE_SPACE, ROOM_HEIGHT / 10);
+
+  const verticalWallsTextureAO = new THREE.TextureLoader().load(
+    "assets/textures/stone2/stone_ao.jpg"
+  );
+  verticalWallsTextureAO.wrapS = THREE.RepeatWrapping;
+  verticalWallsTextureAO.wrapT = THREE.RepeatWrapping;
+  verticalWallsTextureAO.repeat.set(ROOM_WIDTH / 10 - HOLE_SPACE, ROOM_HEIGHT / 10);
+
+
+  const verticalWallsTextureBump = new THREE.TextureLoader().load(
+    "assets/textures/stone2/stone_height.png"
+  );
+  verticalWallsTextureBump.wrapS = THREE.RepeatWrapping;
+  verticalWallsTextureBump.wrapT = THREE.RepeatWrapping;
+  verticalWallsTextureBump.repeat.set(ROOM_WIDTH / 10 - HOLE_SPACE, ROOM_HEIGHT / 10);
+
+  const verticalWallsMat = new THREE.MeshPhongMaterial({
+    shininess: 3000,
+    map: verticalWallsTextureAO,
+    bumpMap: verticalWallsTextureBump,
+    bumpScale: 0.05,
+    aoMap: horizontalWallsTextureAO,
+    aoMapIntensity: 0.1,
+  })
+
   const leftWallHoleGeometry = new THREE.BoxGeometry(
     ROOM_WIDTH / 2 - HOLE_SPACE,
     ROOM_HEIGHT,
-    0.99
+    0.9
   );
   const leftWallHoleMesh = new THREE.Mesh(
     leftWallHoleGeometry,
-    stoneTextureMat
+    verticalWallsMat
   );
   leftWallHoleMesh.castShadow = true;
   leftWallHoleMesh.receiveShadow = true;
@@ -350,11 +418,11 @@ function loadLevel1THREE(scene) {
   const rightWallHoleGeometry = new THREE.BoxGeometry(
     ROOM_WIDTH / 2 - HOLE_SPACE,
     ROOM_HEIGHT,
-    0.99
+    0.9
   );
   const rightWallHoleMesh = new THREE.Mesh(
     rightWallHoleGeometry,
-    stoneTextureMat
+    verticalWallsMat
   );
   rightWallHoleMesh.castShadow = true;
   rightWallHoleMesh.receiveShadow = true;

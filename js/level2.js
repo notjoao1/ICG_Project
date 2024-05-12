@@ -105,7 +105,7 @@ function loadLevel2THREE(scene) {
   );
   lavaTexture.wrapS = THREE.RepeatWrapping;
   lavaTexture.wrapT = THREE.RepeatWrapping;
-  lavaTexture.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+  lavaTexture.repeat.set(ROOM_WIDTH / 4, ROOM_HEIGHT / 4);
 
   const floorMaterial = new THREE.MeshLambertMaterial({
     map: lavaTexture,
@@ -116,21 +116,21 @@ function loadLevel2THREE(scene) {
   );
   stoneWallTexture.wrapS = THREE.RepeatWrapping;
   stoneWallTexture.wrapT = THREE.RepeatWrapping;
-  stoneWallTexture.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+  stoneWallTexture.repeat.set(ROOM_WIDTH / 8, ROOM_HEIGHT / 8);
 
   const stoneWallTextureAO = new THREE.TextureLoader().load(
     "assets/textures/stone3/wall_stone_ao.jpg"
   );
   stoneWallTextureAO.wrapS = THREE.RepeatWrapping;
   stoneWallTextureAO.wrapT = THREE.RepeatWrapping;
-  stoneWallTextureAO.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+  stoneWallTextureAO.repeat.set(ROOM_WIDTH / 8, ROOM_HEIGHT / 8);
 
   const stoneWallTextureBump = new THREE.TextureLoader().load(
     "assets/textures/stone3/wall_stone_normal.jpg"
   );
   stoneWallTextureBump.wrapS = THREE.RepeatWrapping;
   stoneWallTextureBump.wrapT = THREE.RepeatWrapping;
-  stoneWallTextureBump.repeat.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2);
+  stoneWallTextureBump.repeat.set(ROOM_WIDTH / 8, ROOM_HEIGHT / 8);
 
 
   const wallsMaterial = new THREE.MeshPhongMaterial({
@@ -189,11 +189,11 @@ function loadLevel2THREE(scene) {
   );
   lavaStoneTexturePlatformBase.wrapS = THREE.RepeatWrapping;
   lavaStoneTexturePlatformBase.wrapT = THREE.RepeatWrapping;
-  lavaStoneTexturePlatformBase.repeat.set(ROOM_WIDTH, 5);
+  lavaStoneTexturePlatformBase.repeat.set(ROOM_WIDTH / 4, 6);
 
   lavaStoneBumpTexture.wrapS = THREE.RepeatWrapping;
   lavaStoneBumpTexture.wrapT = THREE.RepeatWrapping;
-  lavaStoneBumpTexture.repeat.set(ROOM_WIDTH, 5);
+  lavaStoneBumpTexture.repeat.set(ROOM_WIDTH / 4, 6);
 
   const lavaStoneTexturePlatform = new THREE.MeshPhongMaterial({
     map: lavaStoneTexturePlatformBase,
