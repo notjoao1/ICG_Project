@@ -38,7 +38,7 @@ function loadLevel1THREE(scene) {
   //**************************************************************************************/
   //    Load skybox - big cube with images inside of it. it wraps the whole first level
   //**************************************************************************************/
-  const skyboxGeo = new THREE.BoxGeometry(ROOM_WIDTH * 2, ROOM_HEIGHT * 2, ROOM_DEPTH * 2);
+  const skyboxGeo = new THREE.BoxGeometry(ROOM_WIDTH * 2, ROOM_HEIGHT * 4, ROOM_DEPTH * 2);
   const materialArray = [
     new THREE.MeshBasicMaterial({
       map: new THREE.TextureLoader().load("assets/skybox/level1/front.jpg"),

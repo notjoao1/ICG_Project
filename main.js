@@ -81,7 +81,7 @@ function initThree() {
   
   // simulates sun light
   const directionalLightLevel1 = new THREE.DirectionalLight( 0xffffff, 1 );
-  directionalLightLevel1.position.set(0, 200, 0);
+  directionalLightLevel1.position.set(0, 200, -100);
   const directionalLightLevel1Target = new THREE.Object3D();
   directionalLightLevel1Target.position.set(0, 0, 0);
   scene.add(directionalLightLevel1Target);
@@ -102,10 +102,9 @@ function initThree() {
 
   scene.add(directionalLightLevel1);
 
-
   // simulates sun light
   const directionalLightLevel2 = new THREE.DirectionalLight( 0xffffff, 1 );
-  directionalLightLevel2.position.set(200, 200, 0 );
+  directionalLightLevel2.position.set(100, 200, 0 );
   const directionalLightLevel2Target = new THREE.Object3D();
   directionalLightLevel2Target.position.set(200, 0, 0);
   scene.add(directionalLightLevel2Target);
