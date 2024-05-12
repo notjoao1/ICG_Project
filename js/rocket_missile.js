@@ -154,14 +154,18 @@ function collisionHandler(event, playerBody) {
 
     rocketToRemoveId = event.contact.bi.id;
 
+    // vector from the collision point to the center of the playerBody.
+    // this vector has the direction in which the impulse vector is applied
+    // to the player when a rocket explodes
     const directionalVectorForForce =
         getDirectionalVectorFromCollisionToPlayer(event, playerBody);
 
     const distanceFromCollision = directionalVectorForForce.length();
 
+    // unit vector with the direction to apply the impulse to
     const unitDirectionalVec = directionalVectorForForce.unit();
 
-    // directional unit vector between player and collision point
+    // calculate the knockback strength
     const knockback_strength =
         ROCKET_STRENGTH_MULT - distanceFromCollision * (ROCKET_STRENGTH_MULT / 5);
     const impulse = new CANNON.Vec3(
