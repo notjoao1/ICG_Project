@@ -76,16 +76,8 @@ function initThree() {
   document.body.appendChild(stats.dom);
 
   // Lights
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
   scene.add(ambientLight);
-
-  const hemisphereLight = new THREE.HemisphereLight(
-    new THREE.Color(0xffffff),
-    new THREE.Color(0xffffff),
-    0.6
-  );
-
-  scene.add(hemisphereLight);
   
   // simulates sun light
   const directionalLightLevel1 = new THREE.DirectionalLight( 0xffffff, 1 );
@@ -262,8 +254,7 @@ function animate() {
   // only go to next frame if the game is not paused
   if (controls.enabled) {
     world.step(timeStep, dt);
-    /* cannonDebugger.update();
- */
+    /* cannonDebugger.update(); */
     // Update player's model position
     playerMesh.position.copy(playerBody.position);
     camera.getWorldDirection(cameraWorldDirection);
