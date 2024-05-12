@@ -253,6 +253,10 @@ function animate() {
   // only go to next frame if the game is not paused
   if (controls.enabled) {
     world.step(timeStep, dt);
+    if (constants.isPlayerInLevel2) {
+      directionalLightLevel2.isVisible = true;
+      directionalLightLevel1.isVisible = false;
+    }
     /* cannonDebugger.update(); */
     // Update player's model position
     playerMesh.position.copy(playerBody.position);

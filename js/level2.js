@@ -1,4 +1,4 @@
-import { LEVEL1_ROOM_WIDTH } from "./constants.js";
+import { LEVEL1_ROOM_WIDTH, isPlayerInLevel2 } from "./constants.js";
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { DRACOLoader, GLTFLoader } from "three/addons/Addons.js";
@@ -680,8 +680,10 @@ function loadLevel2CANNON(world, playerBody) {
   );
   const firstPlatformPosition = new CANNON.Vec3(X_OFFSET, 1/2, ROOM_DEPTH / 2 - PLATFORM_DEPTH / 2)
   firstPlatformBody.addEventListener('collide', (event) => {
-    if (event.contact.bi == playerBody)
+    if (event.contact.bi == playerBody) {
       CHECKPOINT_LEVEL2.set(firstPlatformPosition.x, firstPlatformPosition.y * 2 + 2, firstPlatformPosition.z);
+      isPlayerInLevel2 = true;
+    }
   })
   firstPlatformBody.position.copy(firstPlatformPosition);
   world.addBody(firstPlatformBody);
